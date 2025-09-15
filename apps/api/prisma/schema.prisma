@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   // CONSULTOR, GESTOR, INVESTIDOR
+  publicKey String?  @map("public_key")
+  secretKey String?  @map("secret_key")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  orders    Order[]
+  cedentes  Cedente[]
+  sacados   Sacado[]
+
+  @@map("users")
+}
+
+model Cedente {
+  id        String   @id @default(cuid())
+  name      String
+  document  String   // CNPJ/CPF
+  address   String?
+  publicKey String?  @map("public_key")
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  consultorId String @map("consultor_id")
+  consultor   User   @relation(fields: [consultorId], references: [id])
+
+  @@map("cedentes")
+}
+
+model Sacado {
+  id        String   @id @default(cuid())
+  name      String
+  document  String   // CNPJ/CPF
+  address   String?
+  publicKey String?  @map("public_key")
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  consultorId String       @map("consultor_id")
+  consultor   User         @relation(fields: [consultorId], references: [id])
+  receivables Receivable[]
+
+  @@map("sacados")
+}
+
+model Fund {
+  id              String   @id @default(cuid())
+  name            String
+  symbol          String   @unique
+  contractAddress String?  @map("contract_address")
+  tokenContractId String?  @map("token_contract_id")
+  vaultContractId String?  @map("vault_contract_id")
+  adminSecretKey  String?  @map("admin_secret_key")
+  maxSupply       Int      @map("max_supply")
+  totalIssued     Int      @default(0) @map("total_issued")
+  price           Float    @default(1.0) // Price per quota in XLM/USDC
+  status          String   @default("DRAFT") // DRAFT, ACTIVE, CLOSED
+  targetAmount    Float?   @map("target_amount")
+  description     String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  receivables Receivable[]
+  orders      Order[]
+
+  @@map("funds")
+}
+
+model Receivable {
+  id        String            @id @default(cuid())
+  faceValue Float             @map("face_value")
+  dueDate   DateTime          @map("due_date")
+  status    String            @default("PENDING") // PENDING, PAID, DISTRIBUTED
+  paidValue Float?            @map("paid_value")
+  paidAt    DateTime?         @map("paid_at")
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  fundId  String @map("fund_id")
+  fund    Fund   @relation(fields: [fundId], references: [id])
+  sacadoId String @map("sacado_id")
+  sacado  Sacado @relation(fields: [sacadoId], references: [id])
+
+  @@map("receivables")
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  quantity   Int
+  price      Float
+  total      Float
+  status     String      @default("PENDING") // PENDING, COMPLETED, FAILED
+  txHash     String?     @map("tx_hash")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  investorId String @map("investor_id")
+  investor   User   @relation(fields: [investorId], references: [id])
+  fundId     String @map("fund_id")
+  fund       Fund   @relation(fields: [fundId], references: [id])
+
+  @@map("orders")
+}
