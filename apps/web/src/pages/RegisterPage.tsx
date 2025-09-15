@@ -9,7 +9,7 @@ const RegisterPage: React.FC = () => {
     password: '',
     confirmPassword: '',
     name: '',
-    userType: 'investidor'
+    userType: 'INVESTIDOR'
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -104,9 +104,9 @@ const RegisterPage: React.FC = () => {
                   onChange={handleChange}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
-                  <option value="investidor">Investidor</option>
-                  <option value="consultor">Consultor</option>
-                  <option value="gestor">Gestor</option>
+                  <option value="INVESTIDOR">Investidor</option>
+                  <option value="CONSULTOR">Consultor</option>
+                  <option value="GESTOR">Gestor</option>
                 </select>
               </div>
             </div>

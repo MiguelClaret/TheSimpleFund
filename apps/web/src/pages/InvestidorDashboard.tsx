@@ -14,13 +14,19 @@ interface Fund {
 }
 
 interface Order {
-  id: number;
-  fundId: number;
-  amount: number;
+  id: string;
+  fundId: string;
+  total: number;
+  price: number;
   quantity: number;
   status: string;
+  txHash?: string;
   createdAt: string;
-  fund?: Fund;
+  updatedAt: string;
+  fund?: {
+    name: string;
+    symbol: string;
+  };
 }
 
 const InvestidorDashboard: React.FC = () => {
@@ -344,10 +350,10 @@ const InvestidorDashboard: React.FC = () => {
                     {orders.map((order) => (
                       <tr key={order.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Fundo #{order.fundId}
+                          {order.fund?.name || `Fundo #${order.fundId}`}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          R$ {order.amount.toLocaleString('pt-BR')}
+                          R$ {order.total?.toLocaleString('pt-BR') || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {order.quantity}

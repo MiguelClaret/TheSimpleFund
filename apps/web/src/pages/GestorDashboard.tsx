@@ -22,13 +22,17 @@ interface Sacado {
 }
 
 interface Fund {
-  id: number;
+  id: string;
   name: string;
-  description: string;
-  targetAmount: number;
-  tokenSymbol: string;
+  description: string | null;
+  targetAmount: number | null;
+  symbol: string;
   status: string;
+  maxSupply: number;
+  totalIssued: number;
+  price: number;
   createdAt: string;
+  updatedAt: string;
 }
 
 const GestorDashboard: React.FC = () => {
@@ -41,8 +45,8 @@ const GestorDashboard: React.FC = () => {
   const [fundFormData, setFundFormData] = useState({
     name: '',
     description: '',
-    targetAmount: '',
-    tokenSymbol: ''
+    symbol: '',
+    maxSupply: '10000'
   });
 
   const loadPendingApprovals = useCallback(async () => {
@@ -109,8 +113,10 @@ const GestorDashboard: React.FC = () => {
     try {
       // Create fund in database
       await fundService.create({
-        ...fundFormData,
-        targetAmount: parseFloat(fundFormData.targetAmount)
+        name: fundFormData.name,
+        symbol: fundFormData.symbol,
+        maxSupply: parseInt(fundFormData.maxSupply),
+        price: 100 // Default price
       });
       
       // Generate admin keys for this fund
@@ -129,12 +135,12 @@ const GestorDashboard: React.FC = () => {
       await stellarService.initializeFundToken(
         keys.secretKey,
         tokenContract.contractId,
-        fundFormData.tokenSymbol,
+        fundFormData.symbol,
         100000 // Initial supply
       );
       
       toast.success(`Fundo criado e tokenizado com sucesso! Token: ${tokenContract.contractId}`);
-      setFundFormData({ name: '', description: '', targetAmount: '', tokenSymbol: '' });
+      setFundFormData({ name: '', description: '', symbol: '', maxSupply: '10000' });
       setShowFundForm(false);
       loadFunds();
     } catch {
@@ -399,21 +405,20 @@ const GestorDashboard: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">Símbolo do Token</label>
                     <input
                       type="text"
-                      name="tokenSymbol"
+                      name="symbol"
                       required
-                      value={fundFormData.tokenSymbol}
+                      value={fundFormData.symbol}
                       onChange={handleFundFormChange}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Valor Alvo (R$)</label>
+                    <label className="block text-sm font-medium text-gray-700">Quantidade Máxima de Tokens</label>
                     <input
                       type="number"
-                      name="targetAmount"
+                      name="maxSupply"
                       required
-                      step="0.01"
-                      value={fundFormData.targetAmount}
+                      value={fundFormData.maxSupply}
                       onChange={handleFundFormChange}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
@@ -455,11 +460,11 @@ const GestorDashboard: React.FC = () => {
                     {funds.map((fund) => (
                       <div key={fund.id} className="border border-gray-200 rounded-lg p-4">
                         <h4 className="text-lg font-medium text-gray-900 mb-2">{fund.name}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{fund.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{fund.description || 'Sem descrição'}</p>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Símbolo: {fund.tokenSymbol}</span>
+                          <span className="text-gray-500">Símbolo: {fund.symbol}</span>
                           <span className="text-blue-600 font-medium">
-                            R$ {fund.targetAmount.toLocaleString('pt-BR')}
+                            R$ {fund.targetAmount ? fund.targetAmount.toLocaleString('pt-BR') : 'N/A'}
                           </span>
                         </div>
                         <div className="mt-2">
