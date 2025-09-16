@@ -1,0 +1,176 @@
+/* TSF Fund Management Styles */
+
+/* Table Styles */
+.tsf-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tsf-table-header {
+  background-color: var(--background-secondary);
+}
+
+.tsf-table-th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tsf-table-body {
+  background-color: var(--background-card);
+}
+
+.tsf-table-row {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-fast);
+}
+
+.tsf-table-row:hover {
+  background-color: var(--background-secondary);
+}
+
+.tsf-table-td {
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+/* Status Badge */
+.tsf-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: 9999px;
+}
+
+.tsf-status-approved {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.tsf-status-rejected {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--error);
+}
+
+.tsf-status-pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+}
+
+/* Empty State */
+.tsf-empty-state {
+  padding: var(--spacing-lg) 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Button Styles */
+.tsf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.tsf-button--primary {
+  background-color: var(--button-primary);
+  color: var(--button-primary-text);
+  border: none;
+}
+
+.tsf-button--primary:hover {
+  background-color: var(--button-primary-hover);
+}
+
+.tsf-button--secondary {
+  background-color: var(--button-secondary);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--border-color);
+}
+
+.tsf-button--secondary:hover {
+  background-color: var(--button-secondary-hover);
+}
+
+.tsf-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.tsf-form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.tsf-form-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.tsf-form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.tsf-form-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
+}
+
+.tsf-form-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Loading Spinner */
+.tsf-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--highlight);
+  animation: tsf-spin 1s ease-in-out infinite;
+}
+
+@keyframes tsf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tsf-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+}
+
+.tsf-loading-text {
+  margin-top: var(--spacing-sm);
+  color: var(--text-secondary);
+}

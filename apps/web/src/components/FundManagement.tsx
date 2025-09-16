@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { cedenteService, sacadoService } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -59,7 +59,7 @@ interface FundManagementProps {
 }
 
 const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
-  const [activeTab, setActiveTab] = useState<'cedentes' | 'sacados'>('cedentes');
+  const [activeTab, setActiveTab] = useState<'assignors' | 'debtors'>('assignors');
   const [cedentes, setCedentes] = useState<Cedente[]>([]);
   const [sacados, setSacados] = useState<Sacado[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,37 +71,37 @@ const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
     publicKey: ''
   });
 
-  const loadCedentes = async () => {
+  const loadCedentes = useCallback(async () => {
     try {
       setLoading(true);
       const data = await cedenteService.listByFund(fund.id);
       setCedentes(data);
-    } catch (error) {
-      toast.error('Erro ao carregar cedentes');
+    } catch {
+      toast.error('Error loading assignors');
     } finally {
       setLoading(false);
     }
-  };
+  }, [fund.id]);
 
-  const loadSacados = async () => {
+  const loadSacados = useCallback(async () => {
     try {
       setLoading(true);
       const data = await sacadoService.listByFund(fund.id);
       setSacados(data);
-    } catch (error) {
-      toast.error('Erro ao carregar sacados');
+    } catch {
+      toast.error('Error loading debtors');
     } finally {
       setLoading(false);
     }
-  };
+  }, [fund.id]);
 
   useEffect(() => {
-    if (activeTab === 'cedentes') {
+    if (activeTab === 'assignors') {
       loadCedentes();
     } else {
       loadSacados();
     }
-  }, [activeTab, fund.id]);
+  }, [activeTab, loadCedentes, loadSacados]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,20 +113,20 @@ const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
         fundId: fund.id
       };
 
-      if (activeTab === 'cedentes') {
+      if (activeTab === 'assignors') {
         await cedenteService.create(data);
-        toast.success('Cedente cadastrado com sucesso!');
+        toast.success('Assignor registered successfully!');
         loadCedentes();
       } else {
         await sacadoService.create(data);
-        toast.success('Sacado cadastrado com sucesso!');
+        toast.success('Debtor registered successfully!');
         loadSacados();
       }
 
       setFormData({ name: '', document: '', address: '', publicKey: '' });
       setShowForm(false);
-    } catch (error) {
-      toast.error('Erro ao cadastrar');
+    } catch {
+      toast.error('Error registering');
     } finally {
       setLoading(false);
     }
@@ -140,72 +140,80 @@ const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
   };
 
   const renderTable = () => {
-    const data = activeTab === 'cedentes' ? cedentes : sacados;
-    const title = activeTab === 'cedentes' ? 'Cedentes' : 'Sacados';
+    const data = activeTab === 'assignors' ? cedentes : sacados;
 
     return (
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">{title} do Fundo: {fund.name}</h3>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-          >
-            Adicionar {activeTab === 'cedentes' ? 'Cedente' : 'Sacado'}
-          </button>
+      <div style={{ 
+        backgroundColor: '#161b22',
+        borderRadius: '8px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          padding: '16px',
+          backgroundColor: '#161b22',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 2fr 1fr 1fr',
+          borderBottom: '1px solid #2d333b',
+          textTransform: 'uppercase',
+          fontSize: '12px',
+          color: '#a1a1aa',
+          fontWeight: 'bold',
+        }}>
+          <div>NAME</div>
+          <div>DOCUMENT</div>
+          <div>STATUS</div>
+          <div>CREATED AT</div>
         </div>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Documento
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Criado em
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {item.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.document}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      item.status === 'APPROVED' 
-                        ? 'bg-green-100 text-green-800'
-                        : item.status === 'REJECTED'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {data.length === 0 && (
-            <div className="text-center py-4 text-gray-500">
-              Nenhum {activeTab === 'cedentes' ? 'cedente' : 'sacado'} cadastrado neste fundo
+        
+        {data.length > 0 ? (
+          data.map((item) => (
+            <div key={item.id} style={{ 
+              padding: '16px', 
+              borderBottom: '1px solid #2d333b',
+              display: 'grid',
+              gridTemplateColumns: '1fr 2fr 1fr 1fr',
+              fontSize: '14px'
+            }}>
+              <div style={{ fontWeight: 'medium' }}>
+                {item.name}
+              </div>
+              <div style={{ color: '#a1a1aa' }}>
+                {item.document}
+              </div>
+              <div>
+                <span style={{
+                  padding: '4px 8px',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  display: 'inline-block',
+                  backgroundColor: item.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.2)' : 
+                                  item.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.2)' : 
+                                  'rgba(245, 158, 11, 0.2)',
+                  color: item.status === 'APPROVED' ? 'rgb(16, 185, 129)' : 
+                         item.status === 'REJECTED' ? 'rgb(239, 68, 68)' : 
+                         'rgb(245, 158, 11)'
+                }}>
+                  {item.status}
+                </span>
+              </div>
+              <div style={{ color: '#a1a1aa' }}>
+                {new Date(item.createdAt).toLocaleDateString("en-US")}
+              </div>
             </div>
-          )}
-        </div>
+          ))
+        ) : (
+          <div style={{ 
+            padding: '32px', 
+            textAlign: 'center', 
+            color: '#a1a1aa',
+            borderBottom: '1px solid #2d333b'
+          }}>
+            No {activeTab === 'assignors' ? 'assignors' : 'debtors'} registered in this fund
+          </div>
+        )}
       </div>
     );
   };
@@ -213,80 +221,198 @@ const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
   const renderForm = () => {
     if (!showForm) return null;
 
-    const title = activeTab === 'cedentes' ? 'Novo Cedente' : 'Novo Sacado';
+    const title = activeTab === 'assignors' ? 'New Assignor' : 'New Debtor';
 
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg max-w-md w-full p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        zIndex: 50
+      }}>
+        <div style={{
+          backgroundColor: '#21262d',
+          borderRadius: '8px',
+          maxWidth: '500px',
+          width: '100%',
+          padding: '24px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+          border: '1px solid #30363d'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: 'white'
+            }}>{title}</h3>
             <button
               onClick={() => setShowForm(false)}
-              className="text-gray-400 hover:text-gray-600"
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#a1a1aa',
+                cursor: 'pointer'
+              }}
+              aria-label="Close"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome</label>
+              <label style={{
+                display: 'block',
+                marginBottom: '4px',
+                fontSize: '14px',
+                fontWeight: 'medium',
+                color: '#a1a1aa'
+              }}>Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#0d1117',
+                  border: '1px solid #30363d',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontSize: '14px'
+                }}
+                placeholder="Enter name"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Documento (CNPJ/CPF)</label>
+              <label style={{
+                display: 'block',
+                marginBottom: '4px',
+                fontSize: '14px',
+                fontWeight: 'medium',
+                color: '#a1a1aa'
+              }}>Document (Tax ID)</label>
               <input
                 type="text"
                 name="document"
                 value={formData.document}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#0d1117',
+                  border: '1px solid #30363d',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontSize: '14px'
+                }}
+                placeholder="Enter document number"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Endereço</label>
+              <label style={{
+                display: 'block',
+                marginBottom: '4px',
+                fontSize: '14px',
+                fontWeight: 'medium',
+                color: '#a1a1aa'
+              }}>Address</label>
               <input
                 type="text"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#0d1117',
+                  border: '1px solid #30363d',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontSize: '14px'
+                }}
+                placeholder="Enter address (optional)"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Chave Pública Stellar</label>
+              <label style={{
+                display: 'block',
+                marginBottom: '4px',
+                fontSize: '14px',
+                fontWeight: 'medium',
+                color: '#a1a1aa'
+              }}>Stellar Public Key</label>
               <input
                 type="text"
                 name="publicKey"
                 value={formData.publicKey}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#0d1117',
+                  border: '1px solid #30363d',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontSize: '14px'
+                }}
+                placeholder="Enter Stellar public key (optional)"
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '8px',
+              marginTop: '16px'
+            }}>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #30363d',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f0b90b',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: 'black',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1
+                }}
               >
-                {loading ? 'Salvando...' : 'Salvar'}
+                {loading ? 'Saving...' : 'Save'}
               </button>
             </div>
           </form>
@@ -296,55 +422,146 @@ const FundManagement: React.FC<FundManagementProps> = ({ fund, onBack }) => {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#0d1117', color: 'white', minHeight: '100vh', padding: '0' }}>
       {/* Header with fund info and back button */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
+      <div style={{ padding: '16px' }}>
+        <div>
           <button
             onClick={onBack}
-            className="mr-4 p-2 text-gray-400 hover:text-gray-600"
+            style={{ 
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              marginBottom: '8px'
+            }}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Gerenciar Fundo: {fund.name}</h2>
-            <p className="text-sm text-gray-600">Código: {fund.symbol} | Status: {fund.status}</p>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0' }}>Manage Fund: {fund.name}</h2>
+          <p style={{ fontSize: '14px', color: '#a1a1aa', marginTop: '4px' }}>Code: {fund.symbol} | Status: {fund.status}</p>
+        </div>
+      </div>
+
+      {/* Tabs - Modern Style like GestorDashboard */}
+      <div className="tsf-tabs-modern tsf-mb-xl tsf-mt-lg tsf-p-sm" style={{ 
+        backgroundColor: '#0d1117',
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'flex-start',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        margin: '24px 16px'
+      }}>
+        {(['assignors', 'debtors'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: activeTab === tab ? '#f0b90b' : '#a1a1aa',
+              padding: '12px 16px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              zIndex: 1,
+              transition: 'color 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              width: '50%',
+              justifyContent: 'center'
+            }}
+          >
+            {tab === 'assignors' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            )}
+            <span className="tsf-text-base tsf-mx-sm">{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+          </button>
+        ))}
+        
+        <div 
+          style={{ 
+            position: 'absolute',
+            bottom: 0,
+            left: activeTab === 'assignors' ? '0%' : '50%',
+            width: '50%',
+            height: '100%',
+            backgroundColor: '#21262d',
+            borderRadius: '8px',
+            transition: 'left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.4s ease-out',
+            zIndex: 0
+          }} 
+        />
+      </div>
+
+      <div style={{ padding: '24px 16px' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '16px' 
+        }}>
+          <h3 style={{ 
+            fontSize: '24px', 
+            fontWeight: 'normal', 
+            margin: 0 
+          }}>
+            {activeTab === 'assignors' ? 'Assignors' : 'Debtors'} in Fund: {fund.name}
+          </h3>
+          
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              backgroundColor: '#f0b90b',
+              color: 'black',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '8px 16px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            Add {activeTab === 'assignors' ? 'Assignor' : 'Debtor'}
+          </button>
+        </div>
+
+        {loading && !showForm ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ 
+              display: 'inline-block',
+              width: '40px',
+              height: '40px',
+              border: '3px solid rgba(255,255,255,0.1)',
+              borderTopColor: '#f0b90b',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p style={{ marginTop: '16px', color: '#a1a1aa' }}>Loading...</p>
           </div>
-        </div>
+        ) : (
+          renderTable()
+        )}
       </div>
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          {(['cedentes', 'sacados'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
-                activeTab === tab
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="text-center py-4">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-        </div>
-      ) : (
-        renderTable()
-      )}
 
       {/* Form Modal */}
       {renderForm()}
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

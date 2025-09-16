@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { fundService, orderService, stellarService } from '../services/api';
+import DashboardLayout from '../components/layouts/DashboardLayout';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import Modal from '../components/common/Modal';
+import Input from '../components/common/Input';
 import toast from 'react-hot-toast';
 
 interface Fund {
@@ -48,7 +53,6 @@ const InvestidorDashboard: React.FC = () => {
     setLoading(true);
     try {
       const response = await fundService.list();
-      // Investidores veem apenas fundos aprovados
       setFunds(response.filter((fund: Fund) => fund.status === 'APPROVED'));
     } catch {
       toast.error('Erro ao carregar fundos');
@@ -121,25 +125,18 @@ const InvestidorDashboard: React.FC = () => {
     try {
       const amount = parseFloat(investmentAmount);
       
-      // Create order in database
       await orderService.create({
         fundId: selectedFund.id,
         amount,
-        quantity: amount // Simplificado: 1 token = 1 real
+        quantity: amount
       });
       
-      // For demo: Mock the blockchain operations
-      // In production, these would be real Soroban contract calls
-      
-      // 1. Add investor to whitelist (mock)
       toast('Adicionando investidor à whitelist...', { icon: 'ℹ️' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 2. Mint tokens to investor (mock)
       toast('Mintando tokens para o investidor...', { icon: '🪙' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 3. Update token balance (mock)
       toast('Atualizando saldo de tokens...', { icon: '📊' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -156,16 +153,16 @@ const InvestidorDashboard: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'tsf-status-approved';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'tsf-status-pending';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'tsf-status-rejected';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'tsf-status-pending';
     }
   };
 
@@ -183,448 +180,701 @@ const InvestidorDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       {/* Modal de Aguardando Aprovação */}
-      {user?.status !== 'APPROVED' && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
-                <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+      <Modal
+        isOpen={user?.status !== 'APPROVED'}
+        onClose={() => {}}
+        title="Aguardando Aprovação"
+        closeOnOverlayClick={false}
+        showCloseButton={false}
+        size="md"
+      >
+        <div className="tsf-text-center">
+          <div className="tsf-status-icon tsf-status-icon--warning tsf-mb-md">
+            ⚠️
+          </div>
+          
+          <div className="tsf-mb-lg">
+            <p className="tsf-mb-md">
+              Sua conta de investidor está sendo analisada pela equipe de gestão. 
+              Aguarde a aprovação para acessar todas as funcionalidades da plataforma.
+            </p>
+            
+            <Card className="tsf-alert tsf-alert--warning">
+              <h4 className="tsf-text-sm tsf-font-medium tsf-mb-sm">Status atual:</h4>
+              <div className="tsf-flex tsf-items-center tsf-justify-center">
+                <span className={`tsf-status-badge tsf-status-${
+                  user?.status === 'PENDING' ? 'pending' :
+                  user?.status === 'REJECTED' ? 'rejected' :
+                  'pending'
+                }`}>
+                  {user?.status === 'PENDING' ? 'Pendente de Aprovação' :
+                   user?.status === 'REJECTED' ? 'Reprovado' :
+                   user?.status || 'Em Análise'}
+                </span>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aguardando Aprovação
-              </h3>
-              <div className="text-sm text-gray-600 mb-6">
-                <p className="mb-3">
-                  Sua conta de investidor está sendo analisada pela equipe de gestão. 
-                  Aguarde a aprovação para acessar todas as funcionalidades da plataforma.
+            </Card>
+            
+            {user?.status === 'REJECTED' && (
+              <Card className="tsf-alert tsf-alert--error tsf-mt-md">
+                <p className="tsf-text-sm">
+                  Sua conta foi reprovada. Entre em contato com o suporte para mais informações.
                 </p>
-                <div className="bg-yellow-50 rounded-lg p-3 text-left">
-                  <h4 className="font-medium text-yellow-800 mb-2">Status atual:</h4>
-                  <div className="flex items-center">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      user?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      user?.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {user?.status === 'PENDING' ? 'Pendente de Aprovação' :
-                       user?.status === 'REJECTED' ? 'Reprovado' :
-                       user?.status || 'Em Análise'}
-                    </span>
-                  </div>
-                </div>
-                {user?.status === 'REJECTED' && (
-                  <div className="bg-red-50 rounded-lg p-3 text-left mt-3">
-                    <p className="text-red-800 text-sm">
-                      <strong>Acesso Negado:</strong> Sua conta foi reprovada. 
-                      Entre em contato com o suporte para mais informações.
-                    </p>
-                  </div>
-                )}
-                <p className="mt-3 text-xs">
-                  📧 Em caso de dúvidas, entre em contato: suporte@vero.com.br
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={async () => {
-                    try {
-                      await refreshUser();
-                      toast.success('Status atualizado!');
-                    } catch (error) {
-                      toast.error('Erro ao atualizar status');
-                    }
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Atualizar Status
-                </button>
-                <button
-                  onClick={logout}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Sair
-                </button>
-              </div>
-            </div>
+              </Card>
+            )}
+            
+            <p className="tsf-text-xs tsf-text-tertiary tsf-mt-md">
+              📧 Em caso de dúvidas, entre em contato: suporte@vero.com.br
+            </p>
+          </div>
+          
+          <div className="tsf-flex tsf-gap-md">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={async () => {
+                try {
+                  await refreshUser();
+                  toast.success('Status atualizado!');
+                } catch {
+                  toast.error('Erro ao atualizar status');
+                }
+              }}
+              className="tsf-flex-1"
+            >
+              Atualizar Status
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={logout}
+              className="tsf-flex-1"
+            >
+              Sair
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Dashboard Content - Only shown if approved */}
       {user?.status === 'APPROVED' && (
-        <>
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">VERO Platform</h1>
-              <p className="text-sm text-gray-500">Investidor Dashboard</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">Olá, {user?.email}</span>
-              <button
-                onClick={logout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sair
-              </button>
+        <DashboardLayout>
+          {/* Investor Summary */}
+          <div className="tsf-dashboard-header tsf-mb-xl tsf-p-md">
+            <div className="tsf-dashboard-welcome">
+              <h2 className="tsf-text-2xl tsf-font-medium tsf-mb-sm">
+                Olá, {user?.email ? user.email.split('@')[0] : 'Investidor'} 👋
+              </h2>
+              <p className="tsf-text-secondary tsf-text-base">
+                Bem-vindo ao seu painel de investimentos. Aqui você pode gerenciar seus ativos e explorar novas oportunidades.
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Investor Information */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4 flex-1">
-              <h3 className="text-lg font-medium text-blue-900">Bem-vindo à Área do Investidor</h3>
-              <div className="mt-2 text-sm text-blue-800">
-                <p className="mb-2">Como investidor, você tem acesso a:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li><strong>Marketplace:</strong> Fundos aprovados e disponíveis para investimento</li>
-                  <li><strong>Portfólio:</strong> Seus investimentos e histórico de transações</li>
-                  <li><strong>Segurança:</strong> Apenas fundos aprovados pelo gestor são exibidos</li>
-                </ul>
-                <p className="mt-3 text-xs text-blue-600">
-                  💡 Todos os investimentos são processados via blockchain Stellar para máxima transparência e segurança.
-                </p>
+          {/* Wallet Setup */}
+          {!stellarKeys && (
+            <Card className="tsf-mb-lg tsf-border-l-warning">
+              <div className="tsf-flex tsf-items-start tsf-gap-md">
+                <div className="tsf-wallet-setup-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 14h.01M7 7h12a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14"></path>
+                  </svg>
+                </div>
+                <div className="tsf-flex-1">
+                  <h4 className="tsf-text-base tsf-font-medium tsf-mb-xs">
+                    Configurar Carteira Stellar
+                  </h4>
+                  <p className="tsf-text-sm tsf-text-secondary tsf-mb-sm">
+                    Você precisa gerar suas chaves Stellar para realizar investimentos via blockchain.
+                    Esta é uma etapa necessária para garantir a segurança das suas transações.
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={generateStellarKeys}
+                  >
+                    <svg width="16" height="16" fill="none" className="tsf-mr-xs" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
+                    Gerar Chaves
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </Card>
+          )}
 
-        {/* Stellar Setup */}
-        {!stellarKeys && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-blue-900">Configurar Carteira Stellar</h3>
-                <p className="text-sm text-blue-700">
-                  Para investir em fundos tokenizados, você precisa de uma carteira Stellar.
-                </p>
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={generateStellarKeys}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                >
-                  Gerar Carteira
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {stellarKeys && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-green-900">Carteira Stellar Configurada</h3>
-                <p className="text-sm text-green-700 font-mono">{stellarKeys.publicKey}</p>
-                {/* TODO: Implementar carregamento de saldos de tokens
-                <div className="mt-2">
-                  <h4 className="text-sm font-medium text-green-800">Saldos de Tokens:</h4>
-                  <div className="flex space-x-4 mt-1">
-                    <span className="text-sm text-green-600">Funcionalidade em desenvolvimento</span>
+          {stellarKeys && (
+            <Card className="tsf-mb-lg tsf-wallet-card">
+              <div className="tsf-flex tsf-flex-col tsf-sm:flex-row tsf-gap-md">
+                <div className="tsf-wallet-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M19 7v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2z"></path>
+                    <path d="M19 14h-4a2 2 0 110-4h4"></path>
+                    <circle cx="16" cy="12" r="1"></circle>
+                  </svg>
+                </div>
+                <div className="tsf-flex-1">
+                  <div className="tsf-wallet-header">
+                    <h4 className="tsf-wallet-title">
+                      <svg width="16" height="16" className="tsf-mr-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                      </svg>
+                      Carteira Stellar
+                    </h4>
+                    <span className="tsf-wallet-badge">Ativo</span>
+                  </div>
+                  
+                  <div className="tsf-wallet-address">
+                    <div className="tsf-wallet-address-label">Chave Pública</div>
+                    <div className="tsf-wallet-address-value">
+                      <code>{stellarKeys.publicKey}</code>
+                      <button 
+                        className="tsf-wallet-copy-btn"
+                        onClick={() => {
+                          navigator.clipboard.writeText(stellarKeys.publicKey);
+                          toast.success('Chave copiada!');
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="tsf-wallet-actions">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={fundAccount}
+                    >
+                      <svg width="16" height="16" className="tsf-mr-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 1v22M1 12h22"></path>
+                      </svg>
+                      Financiar (Testnet)
+                    </Button>
                   </div>
                 </div>
-                */}
               </div>
-              <button
-                onClick={fundAccount}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Financiar (Testnet)
-              </button>
-            </div>
-          </div>
-        )}
+            </Card>
+          )}
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
+          {/* Stats Cards */}
+          <div className="tsf-grid-stats mb-16 tsf-mb-2xl tsf-gap-md">
+            <Card className="tsf-stat-card tsf-p-md">
+              <div className="tsf-stat-icon tsf-stat-icon--purple tsf-p-sm">
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+              <div className="tsf-stat-content tsf-mt-sm">
+                <h3 className="tsf-stat-value tsf-text-xl">
+                  {orders.reduce((sum, order) => sum + order.total, 0).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  })}
+                </h3>
+                <p className="tsf-stat-label">Total Investido</p>
+              </div>
+            </Card>
+
+            <Card className="tsf-stat-card">
+              <div className="tsf-stat-icon tsf-stat-icon--blue">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M20 12V8h-4M4 12v4h4M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9z"></path>
+                </svg>
+              </div>
+              <div className="tsf-stat-content">
+                <h3 className="tsf-stat-value">{orders.length}</h3>
+                <p className="tsf-stat-label">Investimentos Ativos</p>
+              </div>
+            </Card>
+
+            <Card className="tsf-stat-card">
+              <div className="tsf-stat-icon tsf-stat-icon--green">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M16 8v8m-8-8v8M3 12h18M5 4h14l1 2H4l1-2z"></path>
+                  <path d="M6 6l.223 14h11.554L18 6"></path>
+                </svg>
+              </div>
+              <div className="tsf-stat-content">
+                <h3 className="tsf-stat-value">{funds.length}</h3>
+                <p className="tsf-stat-label">Fundos Disponíveis</p>
+              </div>
+            </Card>
+
+            <Card className="tsf-stat-card">
+              <div className="tsf-stat-icon tsf-stat-icon--amber">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div className="tsf-stat-content">
+                <h3 className="tsf-stat-value">
+                  {orders.filter(order => order.status === 'pending').length}
+                </h3>
+                <p className="tsf-stat-label">Pendentes de Aprovação</p>
+              </div>
+            </Card>
+          </div>
+
+          
+
+          {/* Main Tabs Navigation */}
+          <div className="tsf-tabs-modern tsf-mb-xl tsf-mt-xl tsf-p-sm">
             <button
               onClick={() => setActiveTab('marketplace')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'marketplace'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`tsf-tab-modern ${activeTab === 'marketplace' ? 'tsf-tab-modern--active' : ''} tsf-p-md`}
             >
-              Marketplace
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span className="tsf-text-base tsf-mx-sm">Marketplace</span>
+              {funds.length > 0 && <span className="tsf-tab-modern__badge">{funds.length}</span>}
             </button>
+            
             <button
               onClick={() => setActiveTab('portfolio')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'portfolio'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`tsf-tab-modern ${activeTab === 'portfolio' ? 'tsf-tab-modern--active' : ''} tsf-p-md`}
             >
-              Meu Portfólio
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path>
+                <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                <line x1="12" y1="22" x2="12" y2="12"></line>
+              </svg>
+              <span className="tsf-text-base tsf-mx-sm">Meu Portfólio</span>
+              {orders.length > 0 && <span className="tsf-tab-modern__badge">{orders.length}</span>}
             </button>
-          </nav>
-        </div>
+            
+            <div 
+              className="tsf-tab-modern__indicator" 
+              style={{ 
+                left: activeTab === 'marketplace' ? '0%' : '50%', 
+                width: '50%' 
+              }} 
+            />
+          </div>
 
-        {/* Content */}
-        {activeTab === 'marketplace' ? (
-          <div>
-            <h3 className="text-lg font-medium mb-4">Fundos Disponíveis</h3>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {funds.map((fund) => (
-                  <div key={fund.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-lg font-medium text-gray-900">{fund.name}</h4>
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        Aprovado
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">{fund.description || 'Sem descrição'}</p>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Símbolo:</span>
-                        <span className="text-sm font-medium">{fund.symbol}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Preço por cota:</span>
-                        <span className="text-sm font-medium text-green-600">R$ {fund.price.toLocaleString('pt-BR')}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Meta:</span>
-                        <span className="text-sm font-medium">R$ {fund.targetAmount?.toLocaleString('pt-BR') || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Cotas disponíveis:</span>
-                        <span className="text-sm font-medium">{(fund.maxSupply - fund.totalIssued).toLocaleString('pt-BR')}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${Math.min((fund.totalIssued / fund.maxSupply) * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-gray-500 text-center">
-                        {((fund.totalIssued / fund.maxSupply) * 100).toFixed(1)}% vendido
-                      </div>
-                    </div>
-                    
-                    <button
-                      onClick={() => setSelectedFund(fund)}
-                      disabled={!stellarKeys || (fund.maxSupply - fund.totalIssued) === 0}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {(fund.maxSupply - fund.totalIssued) === 0 ? 'Esgotado' : 'Investir'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {funds.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
+          {/* Content */}
+          {activeTab === 'marketplace' ? (
+            <div className="tsf-marketplace tsf-p-md">
+              <div className="tsf-section-header tsf-mb-lg tsf-p-md tsf-bg-secondary tsf-rounded">
+                <div>
+                  <h3 className="tsf-section-title tsf-text-xl tsf-mb-sm">Fundos Disponíveis</h3>
+                  <p className="tsf-section-subtitle tsf-text-base">Explore e invista nos fundos disponíveis na plataforma</p>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum fundo disponível</h3>
-                <p className="text-gray-500">
-                  Não há fundos aprovados para investimento no momento. 
-                  <br />
-                  Novos fundos estarão disponíveis após aprovação do gestor.
-                </p>
+                <div className="tsf-section-actions tsf-flex tsf-gap-md">
+                  <button className="tsf-filter-button tsf-p-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span className="tsf-ml-xs">Filtrar</span>
+                  </button>
+                                    <button className="tsf-sort-button tsf-p-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5h10M11 9h7M11 13h4M3 17h18M3 13V3l4 4M7 3L3 7"></path>
+                    </svg>
+                    <span className="tsf-ml-xs">Ordenar</span>
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <h3 className="text-lg font-medium mb-4">Meus Investimentos</h3>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Fundo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Valor Investido
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tokens
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Data
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {orders.map((order) => (
-                      <tr key={order.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {order.fund?.name || `Fundo #${order.fundId}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          R$ {order.total?.toLocaleString('pt-BR') || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {order.quantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                            {getStatusText(order.status)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {orders.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    Nenhum investimento realizado
+
+              {loading ? (
+                <div className="tsf-loading-container">
+                  <div className="tsf-loading-spinner">
+                    <div className="tsf-spinner"></div>
                   </div>
-                )}
+                  <p className="tsf-loading-text">Carregando fundos disponíveis...</p>
+                </div>
+              ) : (
+                <div className="tsf-funds-grid tsf-gap-lg tsf-p-md">
+                  {funds.map((fund) => (
+                    <div key={fund.id} className="tsf-fund-card-modern tsf-p-md">
+                      <div className="tsf-fund-card-header tsf-mb-md">
+                        <div className="tsf-fund-card-symbol tsf-text-lg tsf-p-sm">{fund.symbol}</div>
+                        <div className="tsf-fund-card-badge tsf-p-xs">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                          </svg>
+                          Aprovado
+                        </div>
+                      </div>
+                      
+                      <h4 className="tsf-fund-card-title">{fund.name}</h4>
+                      
+                      {fund.description && (
+                        <p className="tsf-fund-card-description">
+                          {fund.description.length > 80 
+                            ? `${fund.description.substring(0, 80)}...` 
+                            : fund.description}
+                        </p>
+                      )}
+                      
+                      <div className="tsf-fund-card-stats">
+                        <div className="tsf-fund-card-stat">
+                          <div className="tsf-fund-card-stat-label">Preço</div>
+                          <div className="tsf-fund-card-stat-value tsf-highlight">
+                            R$ {fund.price.toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                        
+                        <div className="tsf-fund-card-stat">
+                          <div className="tsf-fund-card-stat-label">Cotas Disponíveis</div>
+                          <div className="tsf-fund-card-stat-value">
+                            {(fund.maxSupply - fund.totalIssued).toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                        
+                        <div className="tsf-fund-card-stat">
+                          <div className="tsf-fund-card-stat-label">Capitalização</div>
+                          <div className="tsf-fund-card-stat-value">
+                            {(fund.totalIssued * fund.price).toLocaleString('pt-BR', {
+                              style: 'currency', 
+                              currency: 'BRL'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="tsf-fund-card-progress">
+                        <div className="tsf-fund-card-progress-label">
+                          <span>Captação</span>
+                          <span>{Math.round((fund.totalIssued / fund.maxSupply) * 100)}%</span>
+                        </div>
+                        <div className="tsf-fund-card-progress-bar">
+                          <div 
+                            className="tsf-fund-card-progress-fill" 
+                            style={{width: `${Math.round((fund.totalIssued / fund.maxSupply) * 100)}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                      
+                      <div className="tsf-fund-card-actions">
+                        <Button
+                          variant="primary"
+                          size="md"
+                          onClick={() => setSelectedFund(fund)}
+                          fullWidth
+                          disabled={fund.maxSupply <= fund.totalIssued}
+                        >
+                          {fund.maxSupply <= fund.totalIssued ? (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                              </svg>
+                              <span>Esgotado</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                              </svg>
+                              <span>Investir Agora</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {funds.length === 0 && !loading && (
+                <Card className="tsf-empty-state-card">
+                  <div className="tsf-empty-state">
+                    <div className="tsf-empty-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                      </svg>
+                    </div>
+                    <h3 className="tsf-empty-title">Nenhum fundo disponível</h3>
+                    <p className="tsf-empty-description">
+                      Não há fundos aprovados para investimento no momento.
+                      Novos fundos estarão disponíveis após aprovação do gestor.
+                    </p>
+                    <Button variant="secondary" size="sm">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      <span>Monitorar Novos Fundos</span>
+                    </Button>
+                  </div>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className="tsf-portfolio">
+              <div className="tsf-section-header tsf-mb-md">
+                <div>
+                  <h3 className="tsf-section-title">Meu Portfólio</h3>
+                  <p className="tsf-section-subtitle">Acompanhe seus investimentos e desempenho</p>
+                </div>
+                <div className="tsf-section-actions">
+                  <button className="tsf-view-toggle-button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="14" width="7" height="7"></rect>
+                      <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Visualização</span>
+                  </button>
+                  <button className="tsf-export-button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Exportar</span>
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+              
+              {loading ? (
+                <div className="tsf-loading-container">
+                  <div className="tsf-loading-spinner">
+                    <div className="tsf-spinner"></div>
+                  </div>
+                  <p className="tsf-loading-text">Carregando seu portfólio...</p>
+                </div>
+              ) : (
+                <Card className="tsf-portfolio-table-card">
+                  <div className="tsf-portfolio-overview">
+                    <div className="tsf-portfolio-summary">
+                      <div className="tsf-portfolio-summary-item">
+                        <div className="tsf-portfolio-summary-label">Total Investido</div>
+                        <div className="tsf-portfolio-summary-value">
+                          {orders.reduce((sum, order) => sum + order.total, 0).toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          })}
+                        </div>
+                      </div>
+                      <div className="tsf-portfolio-summary-item">
+                        <div className="tsf-portfolio-summary-label">Total de Tokens</div>
+                        <div className="tsf-portfolio-summary-value">
+                          {orders.reduce((sum, order) => sum + order.quantity, 0).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+                      <div className="tsf-portfolio-summary-item">
+                        <div className="tsf-portfolio-summary-label">Operações</div>
+                        <div className="tsf-portfolio-summary-value">
+                          {orders.length}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="tsf-table-container">
+                    <table className="tsf-table-modern">
+                      <thead>
+                        <tr>
+                          <th>Fundo</th>
+                          <th>Quantidade</th>
+                          <th>Valor Total</th>
+                          <th>Status</th>
+                          <th>Data</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map((order) => (
+                          <tr key={order.id}>
+                            <td>
+                              <div className="tsf-fund-cell">
+                                <div className="tsf-fund-cell-icon">{order.fund?.symbol?.charAt(0) || 'F'}</div>
+                                <div>
+                                  <div className="tsf-fund-cell-name">{order.fund?.name || 'N/A'}</div>
+                                  <div className="tsf-fund-cell-symbol">{order.fund?.symbol}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="tsf-quantity-cell">
+                                <span className="tsf-quantity-value">
+                                  {order.quantity.toLocaleString('pt-BR')}
+                                </span>
+                                <span className="tsf-quantity-label">tokens</span>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="tsf-amount-cell">
+                                {order.total.toLocaleString('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL'
+                                })}
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`tsf-status-badge-modern tsf-status-${getStatusBadgeClass(order.status).split('-')[1]}`}>
+                                {getStatusText(order.status)}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="tsf-date-cell">
+                                <div className="tsf-date-value">
+                                  {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                                </div>
+                                <div className="tsf-date-time">
+                                  {new Date(order.createdAt).toLocaleTimeString('pt-BR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <button className="tsf-row-action-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="1"></circle>
+                                  <circle cx="12" cy="5" r="1"></circle>
+                                  <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {orders.length === 0 && (
+                      <div className="tsf-empty-state">
+                        <div className="tsf-empty-icon">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                          </svg>
+                        </div>
+                        <h3 className="tsf-empty-title">Nenhum investimento realizado</h3>
+                        <p className="tsf-empty-description">
+                          Seus investimentos aparecerão aqui após a primeira compra.
+                          Explore o marketplace para começar a investir.
+                        </p>
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={() => setActiveTab('marketplace')}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path>
+                          </svg>
+                          <span>Explorar Marketplace</span>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
+        </DashboardLayout>
+      )}
 
       {/* Investment Modal */}
-      {selectedFund && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-6 border w-full max-w-md shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Investir em {selectedFund.name}
-                </h3>
-                <button
-                  onClick={() => {
-                    setSelectedFund(null);
-                    setInvestmentAmount('');
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-gray-900 mb-2">Informações do Fundo</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Símbolo:</span>
-                    <span className="font-medium">{selectedFund.symbol}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Preço por cota:</span>
-                    <span className="font-medium text-green-600">R$ {selectedFund.price.toLocaleString('pt-BR')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Cotas disponíveis:</span>
-                    <span className="font-medium">{(selectedFund.maxSupply - selectedFund.totalIssued).toLocaleString('pt-BR')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Meta do fundo:</span>
-                    <span className="font-medium">R$ {selectedFund.targetAmount?.toLocaleString('pt-BR') || 'N/A'}</span>
-                  </div>
+      <Modal
+        isOpen={!!selectedFund}
+        onClose={() => {
+          setSelectedFund(null);
+          setInvestmentAmount('');
+        }}
+        title={`Investir em ${selectedFund?.name}`}
+        size="lg"
+        className="tsf-investment-modal"
+      >
+        {selectedFund && (
+          <div className="tsf-p-md">
+            <Card className="tsf-mb-xl tsf-p-md tsf-border-l-info">
+              <h4 className="tsf-font-medium tsf-mb-md tsf-text-lg">Informações do Fundo</h4>
+              <div className="tsf-text-sm tsf-space-y-md">
+                <div className="tsf-fund-detail tsf-py-xs">
+                  <span className="tsf-detail-label tsf-font-medium">Símbolo:</span>
+                  <span className="tsf-detail-value">{selectedFund.symbol}</span>
                 </div>
-                {selectedFund.description && (
-                  <p className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">{selectedFund.description}</p>
-                )}
+                <div className="tsf-fund-detail tsf-py-xs">
+                  <span className="tsf-detail-label tsf-font-medium">Preço por Cota:</span>
+                  <span className="tsf-detail-value">R$ {selectedFund.price.toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="tsf-fund-detail tsf-py-xs">
+                  <span className="tsf-detail-label tsf-font-medium">Cotas Disponíveis:</span>
+                  <span className="tsf-detail-value">
+                    {(selectedFund.maxSupply - selectedFund.totalIssued).toLocaleString('pt-BR')}
+                  </span>
+                </div>
               </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Valor do Investimento (R$)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min={selectedFund.price}
-                  max={(selectedFund.maxSupply - selectedFund.totalIssued) * selectedFund.price}
-                  value={investmentAmount}
-                  onChange={(e) => setInvestmentAmount(e.target.value)}
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder={`Mínimo: R$ ${selectedFund.price.toLocaleString('pt-BR')}`}
-                />
-                {investmentAmount && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Você receberá: {Math.floor(parseFloat(investmentAmount) / selectedFund.price)} cotas
+              {selectedFund.description && (
+                <p className="tsf-text-sm tsf-text-secondary tsf-mt-md tsf-p-sm tsf-bg-secondary tsf-rounded">{selectedFund.description}</p>
+              )}
+            </Card>
+            
+            <div className="tsf-mb-xl tsf-p-md tsf-bg-secondary tsf-rounded">
+              <label className="tsf-font-medium tsf-mb-sm tsf-block tsf-text-base">Valor do Investimento (R$)</label>
+              <Input
+                type="number"
+                value={investmentAmount}
+                onChange={(e) => setInvestmentAmount(e.target.value)}
+                placeholder={`Mínimo: R$ ${selectedFund.price.toLocaleString('pt-BR')}`}
+                className="tsf-input-investment tsf-py-md tsf-text-lg"
+              />
+              {investmentAmount && (
+                <div className="tsf-mt-md tsf-p-sm tsf-bg-primary tsf-rounded tsf-flex tsf-items-center tsf-justify-between">
+                  <span className="tsf-text-sm tsf-text-white">Tokens a receber:</span>
+                  <span className="tsf-text-lg tsf-font-bold tsf-text-white">
+                    {Math.floor(parseFloat(investmentAmount) / selectedFund.price)} {selectedFund.symbol}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Card className="tsf-alert tsf-alert--info tsf-mb-xl tsf-p-md">
+              <div className="tsf-flex tsf-items-start tsf-gap-md">
+                <div className="tsf-status-icon tsf-status-icon--info tsf-p-sm">ℹ️</div>
+                <div className="tsf-text-sm">
+                  <p className="tsf-mb-sm">
+                    <strong className="tsf-text-base">Investimento via Blockchain:</strong>
                   </p>
-                )}
-              </div>
-
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <div className="flex">
-                  <svg className="w-5 h-5 text-blue-400 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="text-sm text-blue-700">
-                    <p className="font-medium">Importante:</p>
-                    <ul className="mt-1 list-disc list-inside space-y-1">
-                      <li>Este é um fundo aprovado para investimento</li>
-                      <li>O valor mínimo é R$ {selectedFund.price.toLocaleString('pt-BR')} (1 cota)</li>
-                      <li>Tokens serão depositados na sua carteira Stellar</li>
-                    </ul>
-                  </div>
+                  <p> 
+                    Sua transação será processada na rede Stellar, garantindo transparência e segurança total.
+                    Os tokens ficarão disponíveis na sua carteira após confirmação.
+                  </p>
                 </div>
               </div>
+            </Card>
 
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleInvestment}
-                  disabled={loading || !investmentAmount || parseFloat(investmentAmount) < selectedFund.price}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? 'Investindo...' : 'Confirmar Investimento'}
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedFund(null);
-                    setInvestmentAmount('');
-                  }}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
+            <div className="tsf-flex tsf-gap-md tsf-mt-xl">
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => {
+                  setSelectedFund(null);
+                  setInvestmentAmount('');
+                }}
+                className="tsf-flex-1 tsf-py-md"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleInvestment}
+                disabled={loading || !investmentAmount || parseFloat(investmentAmount) < selectedFund.price}
+                className="tsf-flex-1 tsf-py-md tsf-font-medium"
+                loading={loading}
+              >
+                {loading ? 'Processando...' : 'Confirmar Investimento'}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
-        </>
-      )}
-    </div>
+        )}
+      </Modal>
+    </>
   );
 };
 
