@@ -9,10 +9,12 @@ const Dashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+      <div className="tsf-loading-screen">
+        <div className="tsf-loading-content">
+          <div className="tsf-loading-spinner">
+            <div className="tsf-spinner-large"></div>
+          </div>
+          <p>Carregando painel...</p>
         </div>
       </div>
     );
@@ -27,10 +29,10 @@ const Dashboard: React.FC = () => {
       return <InvestidorDashboard />;
     default:
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">Acesso não autorizado</h2>
-            <p className="mt-2 text-gray-600">Tipo de usuário não reconhecido.</p>
+        <div className="tsf-loading-screen">
+          <div className="tsf-loading-content">
+            <h2 className="tsf-text-xl">Acesso não autorizado</h2>
+            <p>Tipo de usuário não reconhecido.</p>
           </div>
         </div>
       );

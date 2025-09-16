@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
-import { useAuth } from "../contexts/useAuth";
 import FundManagement from "../components/FundManagement";
+import DashboardLayout from "../components/layouts/DashboardLayout";
+import Card from "../components/common/Card";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input/Input";
+import { PlusIcon, BuildingOfficeIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
 
 interface Fund {
   id: string;
@@ -19,7 +23,6 @@ interface Fund {
 }
 
 const ConsultorDashboard: React.FC = () => {
-  const { logout } = useAuth();
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -37,11 +40,11 @@ const ConsultorDashboard: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-      console.log('Token:', token ? 'Present' : 'Missing'); // Debug log
+      console.log('Token:', token ? 'Present' : 'Missing');
       const response = await api.get("/funds", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('API Response:', response.data); // Debug log
+      console.log('API Response:', response.data);
       setFunds(response.data.funds || response.data.data || response.data || []);
     } catch (error) {
       console.error("Erro ao carregar fundos:", error);
@@ -114,232 +117,199 @@ const ConsultorDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Dashboard - Consultor
-          </h1>
-          <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium"
-          >
-            Sair
-          </button>
-        </div>
-
-        <div className="px-4 py-6 sm:px-0">
-          {/* Action Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium"
-            >
-              {showForm ? "Cancelar" : "Criar Fundo"}
-            </button>
-          </div>
-
-          {/* Form Section */}
-          {showForm && (
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium mb-4">Criar Novo Fundo</h3>
-              <form
-                onSubmit={handleSubmit}
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Nome do Fundo
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Símbolo
-                  </label>
-                  <input
-                    type="text"
-                    name="symbol"
-                    value={formData.symbol}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Descrição
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={3}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Valor Alvo (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="targetAmount"
-                    value={formData.targetAmount}
-                    onChange={handleChange}
-                    step="0.01"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Oferta Máxima (cotas)
-                  </label>
-                  <input
-                    type="number"
-                    name="maxSupply"
-                    value={formData.maxSupply}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Preço por Cota (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    step="0.01"
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {loading ? "Criando..." : "Criar Fundo"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Funds Content Section */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium mb-4">Meus Fundos</h3>
-              <p className="text-sm text-amber-600 mb-4">
-                ⚠️ Fundos criados precisam ser aprovados pelo gestor antes de
-                ficarem disponíveis para investimento.
-              </p>
-              <div className="text-xs text-gray-500 mb-2">
-                Total de fundos carregados: {funds.length}
-              </div>
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {funds.map((fund) => (
-                    <div key={fund.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{fund.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {fund.description}
-                          </p>
-                          <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-500">Símbolo:</span>{" "}
-                              {fund.symbol}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Meta:</span> R${" "}
-                              {fund.targetAmount?.toLocaleString("pt-BR") ||
-                                "N/A"}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">
-                                Oferta Máxima:
-                              </span>{" "}
-                              {fund.maxSupply.toLocaleString("pt-BR")} cotas
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Emitidas:</span>{" "}
-                              {fund.totalIssued.toLocaleString("pt-BR")} cotas
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Preço:</span> R${" "}
-                              {fund.price.toLocaleString("pt-BR")}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Criado em:</span>{" "}
-                              {new Date(fund.createdAt).toLocaleDateString("pt-BR")}
-                            </div>
-                          </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                fund.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : fund.status === "APPROVED"
-                                  ? "bg-green-100 text-green-800"
-                                  : fund.status === "REJECTED"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {fund.status === "PENDING"
-                                ? "Aguardando Aprovação"
-                                : fund.status === "APPROVED"
-                                ? "Aprovado"
-                                : fund.status === "REJECTED"
-                                ? "Rejeitado"
-                                : fund.status}
-                            </span>
-                            <button
-                              onClick={() => setSelectedFund(fund)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
-                            >
-                              Gerenciar Cedentes/Sacados
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {funds.length === 0 && !loading && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>Nenhum fundo encontrado.</p>
-                      <p className="text-sm">Comece criando seu primeiro fundo!</p>
-                      <div className="mt-2 text-xs">
-                        Debug: API respondeu mas sem fundos para este consultor
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+    <DashboardLayout title="Dashboard - Consultor">
+      {/* Action Button */}
+      <div className="tsf-dashboard-actions">
+        <Button
+          variant={showForm ? "secondary" : "primary"}
+          size="md"
+          onClick={() => setShowForm(!showForm)}
+          icon={<PlusIcon className="tsf-icon-sm" />}
+        >
+          {showForm ? "Cancelar" : "Criar Fundo"}
+        </Button>
       </div>
-    </div>
+
+      {/* Form Section */}
+      {showForm && (
+        <Card title="Criar Novo Fundo" className="tsf-mb-lg">
+          <form onSubmit={handleSubmit} className="tsf-form-grid">
+            <Input
+              label="Nome do Fundo"
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Ex: Fundo Imobiliário ABC"
+            />
+            
+            <Input
+              label="Símbolo"
+              type="text"
+              name="symbol"
+              value={formData.symbol}
+              onChange={handleChange}
+              required
+              placeholder="Ex: FABC11"
+            />
+            
+            <div className="tsf-form-full-width">
+              <Input
+                label="Descrição"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                placeholder="Descreva o fundo e seus objetivos..."
+              />
+            </div>
+            
+            <Input
+              label="Valor Alvo (R$)"
+              type="number"
+              name="targetAmount"
+              value={formData.targetAmount}
+              onChange={handleChange}
+              step="0.01"
+              placeholder="1000000.00"
+            />
+            
+            <Input
+              label="Oferta Máxima (cotas)"
+              type="number"
+              name="maxSupply"
+              value={formData.maxSupply}
+              onChange={handleChange}
+              required
+              placeholder="10000"
+            />
+            
+            <Input
+              label="Preço por Cota (R$)"
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              step="0.01"
+              required
+              placeholder="100.00"
+            />
+            
+            <div className="tsf-form-full-width">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={loading}
+                fullWidth
+              >
+                {loading ? "Criando..." : "Criar Fundo"}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {/* Funds Content Section */}
+      <Card title="Meus Fundos">
+        <div className="tsf-alert tsf-alert--warning tsf-mb-md">
+          ⚠️ Fundos criados precisam ser aprovados pelo gestor antes de ficarem disponíveis para investimento.
+        </div>
+        <div className="tsf-text-xs tsf-text-secondary tsf-mb-sm">
+          Total de fundos carregados: {funds.length}
+        </div>
+        
+        {loading ? (
+          <div className="tsf-loading-spinner">
+            <div className="tsf-spinner"></div>
+          </div>
+        ) : (
+          <div className="tsf-funds-grid">
+            {funds.map((fund) => (
+              <Card key={fund.id} className="tsf-fund-card">
+                <div className="tsf-fund-header">
+                  <h4 className="tsf-fund-title">{fund.name}</h4>
+                  <span className={`tsf-status-badge tsf-status-${fund.status.toLowerCase()}`}>
+                    {fund.status === "PENDING"
+                      ? "Aguardando Aprovação"
+                      : fund.status === "APPROVED"
+                      ? "Aprovado"
+                      : fund.status === "REJECTED"
+                      ? "Rejeitado"
+                      : fund.status}
+                  </span>
+                </div>
+                
+                <p className="tsf-fund-description">{fund.description}</p>
+                
+                <div className="tsf-fund-details">
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Símbolo:</span>
+                    <span className="tsf-detail-value">{fund.symbol}</span>
+                  </div>
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Meta:</span>
+                    <span className="tsf-detail-value">
+                      R$ {fund.targetAmount?.toLocaleString("pt-BR") || "N/A"}
+                    </span>
+                  </div>
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Oferta Máxima:</span>
+                    <span className="tsf-detail-value">
+                      {fund.maxSupply.toLocaleString("pt-BR")} cotas
+                    </span>
+                  </div>
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Emitidas:</span>
+                    <span className="tsf-detail-value">
+                      {fund.totalIssued.toLocaleString("pt-BR")} cotas
+                    </span>
+                  </div>
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Preço:</span>
+                    <span className="tsf-detail-value tsf-highlight">
+                      R$ {fund.price.toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  <div className="tsf-fund-detail">
+                    <span className="tsf-detail-label">Criado em:</span>
+                    <span className="tsf-detail-value">
+                      {new Date(fund.createdAt).toLocaleDateString("pt-BR")}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="tsf-fund-actions">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setSelectedFund(fund)}
+                    icon={<BuildingOfficeIcon className="tsf-icon-sm" />}
+                  >
+                    Gerenciar Cedentes/Sacados
+                  </Button>
+                </div>
+              </Card>
+            ))}
+            
+            {funds.length === 0 && !loading && (
+              <div className="tsf-empty-state">
+                <CurrencyDollarIcon className="tsf-empty-icon" />
+                <p className="tsf-empty-title">Nenhum fundo encontrado</p>
+                <p className="tsf-empty-description">
+                  Comece criando seu primeiro fundo!
+                </p>
+                <div className="tsf-text-xs tsf-text-tertiary tsf-mt-sm">
+                  Debug: API respondeu mas sem fundos para este consultor
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 };
 

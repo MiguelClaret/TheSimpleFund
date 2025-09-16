@@ -13,8 +13,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="tsf-loading-screen">
+        <div className="tsf-loading-spinner">
+          <div className="tsf-spinner-large"></div>
+          <p style={{ 
+            color: 'var(--text-secondary)', 
+            marginTop: 'var(--spacing-lg)',
+            fontSize: 'var(--font-size-sm)'
+          }}>
+            Loading TSF Platform...
+          </p>
+        </div>
       </div>
     );
   }
@@ -27,8 +36,17 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="tsf-loading-screen">
+        <div className="tsf-loading-spinner">
+          <div className="tsf-spinner-large"></div>
+          <p style={{ 
+            color: 'var(--text-secondary)', 
+            marginTop: 'var(--spacing-lg)',
+            fontSize: 'var(--font-size-sm)'
+          }}>
+            Loading TSF Platform...
+          </p>
+        </div>
       </div>
     );
   }
@@ -40,14 +58,35 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <div className="app">
           <Toaster 
             position="top-right"
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: 'var(--background-card)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius)',
+                boxShadow: 'var(--shadow-lg)',
+              },
+              success: {
+                style: {
+                  border: '1px solid var(--success)',
+                },
+                iconTheme: {
+                  primary: 'var(--success)',
+                  secondary: 'var(--background-card)',
+                },
+              },
+              error: {
+                style: {
+                  border: '1px solid var(--error)',
+                },
+                iconTheme: {
+                  primary: 'var(--error)',
+                  secondary: 'var(--background-card)',
+                },
               },
             }}
           />

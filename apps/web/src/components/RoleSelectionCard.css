@@ -1,0 +1,343 @@
+/* Role Selection Card Styles */
+
+.tsf-role-selection-card {
+  position: relative;
+  background: var(--background-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-height: 20rem;
+  user-select: none;
+}
+
+.tsf-role-selection-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-light);
+}
+
+.tsf-role-selection-card:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Selected State */
+.tsf-role-selection-card--selected {
+  border-color: var(--highlight);
+  background: linear-gradient(
+    135deg,
+    var(--background-card) 0%,
+    rgba(240, 185, 11, 0.08) 100%
+  );
+  box-shadow: var(--shadow-lg);
+}
+
+.tsf-role-selection-card--selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--highlight);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+/* Disabled State */
+.tsf-role-selection-card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Role Variants */
+.tsf-role-selection-card--investor {
+  --role-color: var(--info);
+}
+
+.tsf-role-selection-card--gestorFundo {
+  --role-color: var(--success);
+}
+
+.tsf-role-selection-card--consultor {
+  --role-color: var(--warning);
+}
+
+/* Header */
+.tsf-role-selection-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.tsf-role-selection-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: var(--background-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--role-color, var(--highlight));
+  font-size: 2rem;
+  transition: all var(--transition-normal);
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__icon {
+  background: var(--role-color, var(--highlight));
+  color: var(--background-card);
+  border-color: var(--role-color, var(--highlight));
+  transform: scale(1.1);
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__icon {
+  background: var(--highlight);
+  color: var(--background-card);
+  border-color: var(--highlight);
+}
+
+.tsf-role-selection-card__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__badge {
+  opacity: 1;
+}
+
+.tsf-role-selection-card__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--highlight);
+  color: var(--background-card);
+  border-radius: 50%;
+  animation: checkmark-pop 0.3s ease-out;
+}
+
+@keyframes checkmark-pop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Content */
+.tsf-role-selection-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.tsf-role-selection-card__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.tsf-role-selection-card__description {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Features */
+.tsf-role-selection-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.tsf-role-selection-card__features-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tsf-role-selection-card__features-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.tsf-role-selection-card__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.tsf-role-selection-card__feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--role-color, var(--highlight));
+  flex-shrink: 0;
+}
+
+/* Footer */
+.tsf-role-selection-card__footer {
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+}
+
+.tsf-role-selection-card__action {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--transition-fast);
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__action {
+  color: var(--role-color, var(--highlight));
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__action {
+  color: var(--highlight);
+}
+
+/* Hover Overlay */
+.tsf-role-selection-card__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--role-color, var(--highlight));
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__overlay {
+  opacity: 0.02;
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__overlay {
+  opacity: 0.05;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tsf-role-selection-card {
+    padding: var(--spacing-lg);
+    min-height: 18rem;
+  }
+
+  .tsf-role-selection-card__icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+  }
+
+  .tsf-role-selection-card__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .tsf-role-selection-card__features {
+    margin-top: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .tsf-role-selection-card {
+    padding: var(--spacing-md);
+    min-height: 16rem;
+  }
+
+  .tsf-role-selection-card__header {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .tsf-role-selection-card__badge {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+}
+
+/* Animation for card entrance */
+.tsf-role-selection-card {
+  animation: cardSlideIn 0.4s ease-out;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for accessibility */
+.tsf-role-selection-card:focus {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.tsf-role-selection-card--loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.tsf-role-selection-card--loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: loading 1.5s infinite;
+  border-radius: inherit;
+}
