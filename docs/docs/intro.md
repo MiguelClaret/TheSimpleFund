@@ -61,4 +61,19 @@ With Stellar’s capacity to process transactions in **\~5 seconds at a cost of 
 Backed by Stellar’s proven infrastructure, the solution aligns with the trillion-dollar growth of receivables financing and the rapid expansion of tokenized assets worldwide.
 
 
+## Bibliography
+
+* **DataIntelo**. (2023). *Receivables Financing Market: Growth, Trends, and Forecast (2023-2032)*. DataIntelo.
+* **Trade Treasury Payments**. (2025). *Global Factoring Market Growth Analysis*. Trade Treasury Payments.
+* **Mordor Intelligence**. (2025). *Blockchain Market in Financial Services: Forecast to 2030*. Mordor Intelligence.
+* **World Economic Forum**. (2025). *Blockchain and the Future of Financial Markets*. World Economic Forum.
+* **Treble Peak**. (2025). *Real-Time Transparency in Private Markets: A Blockchain Perspective*. Treble Peak Research.
+* **The Hedge Fund Journal**. (2025). *The Future of Asset Tokenization and Access to Private Markets*. The Hedge Fund Journal.
+* **EQT Group**. (2025). *Private Equity: Trends and Challenges in Market Liquidity*. EQT Group.
+* **Institutional Investor**. (2024). *The Need for Transparency in Private Equity Investments*. Institutional Investor.
+* **Stellar Development Foundation**. (2025). *Stellar Network: A Global Payment Infrastructure*. Stellar Development Foundation.
+* **Bottomline**. (2025). *Processing Manual Invoices: Operational Costs and Delays*. Bottomline Technologies.
+
+
+
 
