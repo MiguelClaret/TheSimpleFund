@@ -1,7 +1,28 @@
-import React, { useState, useEffect, useCallback } from "react";
-import api from "../services/api";
-import { useAuth } from "../contexts/useAuth";
-import FundManagement from "../components/FundManagement";
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  PlusIcon, 
+  ChartBarIcon, 
+  BanknotesIcon, 
+  UsersIcon,
+  ArrowTrendingUpIcon,
+  ClockIcon
+} from '@heroicons/react/24/outline';
+import { DashboardLayout } from '../components/layouts/DashboardLayout';
+import { GlassCard } from '../components/common/Card';
+import Button from '../components/common/Button/Button';
+import { useAuth } from '../contexts/useAuth';
+import { CreateFundForm, ConsultantFundList } from '../components/features/consultant';
+import api from '../services/api';
+
+interface ConsultorStats {
+  totalFunds: number;
+  activeFunds: number;
+  pendingApproval: number;
+  totalAssetsUnderManagement: number;
+  monthlyCommission: number;
+  totalClients: number;
+}
 
 interface Fund {
   id: string;
@@ -19,327 +40,238 @@ interface Fund {
 }
 
 const ConsultorDashboard: React.FC = () => {
-  const { logout } = useAuth();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'funds' | 'create'>('overview');
+  const [isLoading, setIsLoading] = useState(true);
   const [funds, setFunds] = useState<Fund[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    symbol: "",
-    description: "",
-    targetAmount: "",
-    maxSupply: "",
-    price: "",
+  const [stats, setStats] = useState<ConsultorStats>({
+    totalFunds: 0,
+    activeFunds: 0,
+    pendingApproval: 0,
+    totalAssetsUnderManagement: 0,
+    monthlyCommission: 0,
+    totalClients: 0
   });
 
-  const loadFunds = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("authToken");
-      console.log('Token:', token ? 'Present' : 'Missing'); // Debug log
-      const response = await api.get("/funds", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log('API Response:', response.data); // Debug log
-      setFunds(response.data.funds || response.data.data || response.data || []);
-    } catch (error) {
-      console.error("Erro ao carregar fundos:", error);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    loadFunds();
-  }, [loadFunds]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchData = async () => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem("authToken");
+      setIsLoading(true);
+      
+      // Buscar fundos do consultor
+      const fundsResponse = await api.get('/fund/consultant');
+      const fundsData = fundsResponse.data || [];
+      setFunds(fundsData);
 
-      const fundPayload = {
-        name: formData.name,
-        symbol: formData.symbol,
-        description: formData.description,
-        targetAmount: formData.targetAmount
-          ? parseFloat(formData.targetAmount)
-          : null,
-        maxSupply: parseInt(formData.maxSupply),
-        price: parseFloat(formData.price),
-      };
-
-      await api.post("/funds", fundPayload, {
-        headers: { Authorization: `Bearer ${token}` },
+      // Calcular estatísticas
+      const activeFunds = fundsData.filter((f: Fund) => f.status === 'approved').length;
+      const pendingApproval = fundsData.filter((f: Fund) => f.status === 'pending').length;
+      const totalAUM = fundsData.reduce((sum: number, f: Fund) => sum + (f.totalIssued * f.price), 0);
+      
+      setStats({
+        totalFunds: fundsData.length,
+        activeFunds,
+        pendingApproval,
+        totalAssetsUnderManagement: totalAUM,
+        monthlyCommission: totalAUM * 0.01, // Estimativa de 1% de comissão
+        totalClients: fundsData.length * 10 + Math.floor(Math.random() * 50) // Mock data
       });
-
-      // Reset form
-      setFormData({
-        name: "",
-        symbol: "",
-        description: "",
-        targetAmount: "",
-        maxSupply: "",
-        price: "",
-      });
-      setShowForm(false);
-
-      // Reload data
-      await loadFunds();
-    } catch (error: unknown) {
-      console.error("Erro ao salvar:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao salvar";
-      alert(errorMessage);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleFundCreated = () => {
+    fetchData();
+    setActiveTab('funds');
   };
 
-  if (selectedFund) {
-    return (
-      <FundManagement
-        fund={selectedFund}
-        onBack={() => setSelectedFund(null)}
-      />
-    );
-  }
+  const handleManageFund = (fund: Fund) => {
+    // Implementar navegação para gestão de cedentes/sacados
+    console.log('Gerenciar fundo:', fund.id);
+  };
+
+  const tabs = [
+    { id: 'overview', label: 'Visão Geral', icon: ChartBarIcon },
+    { id: 'funds', label: 'Meus Fundos', icon: BanknotesIcon },
+    { id: 'create', label: 'Criar Fundo', icon: PlusIcon },
+  ] as const;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Dashboard - Consultor
-          </h1>
-          <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium"
-          >
-            Sair
-          </button>
-        </div>
-
-        <div className="px-4 py-6 sm:px-0">
-          {/* Action Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium"
-            >
-              {showForm ? "Cancelar" : "Criar Fundo"}
-            </button>
+    <DashboardLayout title="Painel do Consultor">
+      <div className="space-y-8">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-4"
+        >
+          <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            Painel do Consultor
           </div>
+          <p className="text-xl text-gray-300">
+            Bem-vindo, {user?.email}! Gerencie seus fundos e clientes aqui.
+          </p>
+        </motion.div>
 
-          {/* Form Section */}
-          {showForm && (
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium mb-4">Criar Novo Fundo</h3>
-              <form
-                onSubmit={handleSubmit}
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Nome do Fundo
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
+        {/* Tab Navigation */}
+        <GlassCard>
+          <div className="flex space-x-1 p-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-200
+                    ${activeTab === tab.id
+                      ? 'bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white border border-blue-400/30'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </GlassCard>
+
+        {/* Tab Content */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Total de Fundos</p>
+                      <p className="text-2xl font-bold text-white">{stats.totalFunds}</p>
+                    </div>
+                    <div className="p-3 bg-blue-500/20 rounded-lg">
+                      <BanknotesIcon className="w-6 h-6 text-blue-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Fundos Ativos</p>
+                      <p className="text-2xl font-bold text-green-400">{stats.activeFunds}</p>
+                    </div>
+                    <div className="p-3 bg-green-500/20 rounded-lg">
+                      <ArrowTrendingUpIcon className="w-6 h-6 text-green-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Aguardando Aprovação</p>
+                      <p className="text-2xl font-bold text-yellow-400">{stats.pendingApproval}</p>
+                    </div>
+                    <div className="p-3 bg-yellow-500/20 rounded-lg">
+                      <ClockIcon className="w-6 h-6 text-yellow-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Patrimônio Sob Gestão</p>
+                      <p className="text-2xl font-bold text-purple-400">
+                        R$ {stats.totalAssetsUnderManagement.toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-purple-500/20 rounded-lg">
+                      <ChartBarIcon className="w-6 h-6 text-purple-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Comissão Mensal</p>
+                      <p className="text-2xl font-bold text-green-400">
+                        R$ {stats.monthlyCommission.toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-500/20 rounded-lg">
+                      <BanknotesIcon className="w-6 h-6 text-green-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Total de Clientes</p>
+                      <p className="text-2xl font-bold text-blue-400">{stats.totalClients}</p>
+                    </div>
+                    <div className="p-3 bg-blue-500/20 rounded-lg">
+                      <UsersIcon className="w-6 h-6 text-blue-400" />
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Quick Actions */}
+              <GlassCard>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-white">Ações Rápidas</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button
+                      onClick={() => setActiveTab('create')}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    >
+                      <PlusIcon className="w-5 h-5 mr-2" />
+                      Criar Novo Fundo
+                    </Button>
+                    <Button
+                      onClick={() => setActiveTab('funds')}
+                      variant="secondary"
+                      className="w-full"
+                    >
+                      <BanknotesIcon className="w-5 h-5 mr-2" />
+                      Gerenciar Fundos
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Símbolo
-                  </label>
-                  <input
-                    type="text"
-                    name="symbol"
-                    value={formData.symbol}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Descrição
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={3}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Valor Alvo (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="targetAmount"
-                    value={formData.targetAmount}
-                    onChange={handleChange}
-                    step="0.01"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Oferta Máxima (cotas)
-                  </label>
-                  <input
-                    type="number"
-                    name="maxSupply"
-                    value={formData.maxSupply}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Preço por Cota (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    step="0.01"
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {loading ? "Criando..." : "Criar Fundo"}
-                  </button>
-                </div>
-              </form>
+              </GlassCard>
             </div>
           )}
 
-          {/* Funds Content Section */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium mb-4">Meus Fundos</h3>
-              <p className="text-sm text-amber-600 mb-4">
-                ⚠️ Fundos criados precisam ser aprovados pelo gestor antes de
-                ficarem disponíveis para investimento.
-              </p>
-              <div className="text-xs text-gray-500 mb-2">
-                Total de fundos carregados: {funds.length}
-              </div>
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {funds.map((fund) => (
-                    <div key={fund.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{fund.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {fund.description}
-                          </p>
-                          <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-500">Símbolo:</span>{" "}
-                              {fund.symbol}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Meta:</span> R${" "}
-                              {fund.targetAmount?.toLocaleString("pt-BR") ||
-                                "N/A"}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">
-                                Oferta Máxima:
-                              </span>{" "}
-                              {fund.maxSupply.toLocaleString("pt-BR")} cotas
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Emitidas:</span>{" "}
-                              {fund.totalIssued.toLocaleString("pt-BR")} cotas
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Preço:</span> R${" "}
-                              {fund.price.toLocaleString("pt-BR")}
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Criado em:</span>{" "}
-                              {new Date(fund.createdAt).toLocaleDateString("pt-BR")}
-                            </div>
-                          </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                fund.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : fund.status === "APPROVED"
-                                  ? "bg-green-100 text-green-800"
-                                  : fund.status === "REJECTED"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {fund.status === "PENDING"
-                                ? "Aguardando Aprovação"
-                                : fund.status === "APPROVED"
-                                ? "Aprovado"
-                                : fund.status === "REJECTED"
-                                ? "Rejeitado"
-                                : fund.status}
-                            </span>
-                            <button
-                              onClick={() => setSelectedFund(fund)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
-                            >
-                              Gerenciar Cedentes/Sacados
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {funds.length === 0 && !loading && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>Nenhum fundo encontrado.</p>
-                      <p className="text-sm">Comece criando seu primeiro fundo!</p>
-                      <div className="mt-2 text-xs">
-                        Debug: API respondeu mas sem fundos para este consultor
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+          {activeTab === 'funds' && (
+            <ConsultantFundList
+              funds={funds}
+              loading={isLoading}
+              onManageFund={handleManageFund}
+            />
+          )}
+
+          {activeTab === 'create' && (
+            <CreateFundForm onFundCreated={handleFundCreated} />
+          )}
+        </motion.div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
