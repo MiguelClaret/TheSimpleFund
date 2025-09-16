@@ -2,3 +2,5 @@
 @import './styles/globals.css';
 @import './styles/tab-animations.css';
 @import './styles/fund-management.css';
+@import './styles/modal-form.css';
+@import './styles/auth-form.css';

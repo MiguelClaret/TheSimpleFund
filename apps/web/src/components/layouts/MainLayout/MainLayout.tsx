@@ -85,11 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             </span>
           </div>
           
-          <div className="tsf-footer__links">
-            <a href="/privacy" className="tsf-footer__link">Privacy</a>
-            <a href="/terms" className="tsf-footer__link">Terms</a>
-            <a href="/security" className="tsf-footer__link">Security</a>
-          </div>
+      
           
           <div className="tsf-footer__social">
             <a href="#" className="tsf-footer__social-link" aria-label="Twitter">

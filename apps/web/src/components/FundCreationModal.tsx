@@ -210,7 +210,7 @@ const FundCreationModal: React.FC<FundCreationModalProps> = ({
           helperText="The symbol is displayed on the platform and should be short (max 8 characters)"
         />
         
-        <div className="tsf-form-full-width">
+        <div style={{ gridColumn: 'span 2' }}>
           <Input
             label="Description"
             name="description"

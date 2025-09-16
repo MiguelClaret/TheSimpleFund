@@ -67,6 +67,7 @@ const Input: React.FC<InputProps> = ({
         onChange={onChange}
         onFocus={onFocus}
         onBlur={onBlur}
+        style={{ color: 'white' }} // Ensure text is visible in dark mode
       />
       
       {error && <div className="tsf-input-error">{error}</div>}
