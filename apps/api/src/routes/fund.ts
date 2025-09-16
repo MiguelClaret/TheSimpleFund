@@ -39,8 +39,13 @@ export async function fundRoutes(fastify: FastifyInstance) {
 
       // If it's a consultor, check if they are approved
       if (payload.role === 'CONSULTOR') {
+        // Ensure payload.id is defined (the JWT contains 'id', not 'userId')
+        if (!payload.id) {
+          return reply.status(400).send({ error: 'Invalid token payload. Missing user ID.' });
+        }
+        
         const consultor = await fastify.prisma.user.findUnique({
-          where: { id: payload.userId }
+          where: { id: payload.id }
         });
         
         if (!consultor || consultor.status !== 'APPROVED') {
@@ -65,7 +70,7 @@ export async function fundRoutes(fastify: FastifyInstance) {
         // Funds created by consultors start as PENDING, by gestors as APPROVED
         status: payload.role === 'CONSULTOR' ? 'PENDING' : 'APPROVED',
         // Associate consultor if applicable
-        ...(payload.role === 'CONSULTOR' && { consultorId: payload.userId })
+        ...(payload.role === 'CONSULTOR' && { consultorId: payload.id })
       };
 
       const fund = await fastify.prisma.fund.create({

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import FundManagement from "../components/FundManagement";
+import FundCreationModal from "../components/FundCreationModal";
 import DashboardLayout from "../components/layouts/DashboardLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
-import Input from "../components/common/Input/Input";
 import { PlusIcon, BuildingOfficeIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import toast from 'react-hot-toast';
 
 interface Fund {
   id: string;
@@ -25,29 +26,19 @@ interface Fund {
 const ConsultorDashboard: React.FC = () => {
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    symbol: "",
-    description: "",
-    targetAmount: "",
-    maxSupply: "",
-    price: "",
-  });
 
   const loadFunds = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-      console.log('Token:', token ? 'Present' : 'Missing');
       const response = await api.get("/funds", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('API Response:', response.data);
       setFunds(response.data.funds || response.data.data || response.data || []);
-    } catch (error) {
-      console.error("Erro ao carregar fundos:", error);
+    } catch {
+      toast.error("Error loading funds");
     } finally {
       setLoading(false);
     }
@@ -57,54 +48,9 @@ const ConsultorDashboard: React.FC = () => {
     loadFunds();
   }, [loadFunds]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("authToken");
-
-      const fundPayload = {
-        name: formData.name,
-        symbol: formData.symbol,
-        description: formData.description,
-        targetAmount: formData.targetAmount
-          ? parseFloat(formData.targetAmount)
-          : null,
-        maxSupply: parseInt(formData.maxSupply),
-        price: parseFloat(formData.price),
-      };
-
-      await api.post("/funds", fundPayload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Reset form
-      setFormData({
-        name: "",
-        symbol: "",
-        description: "",
-        targetAmount: "",
-        maxSupply: "",
-        price: "",
-      });
-      setShowForm(false);
-
-      // Reload data
-      await loadFunds();
-    } catch (error: unknown) {
-      console.error("Erro ao salvar:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao salvar";
-      alert(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleFundCreated = async () => {
+    // Reload funds after creation
+    await loadFunds();
   };
 
   if (selectedFund) {
@@ -117,166 +63,152 @@ const ConsultorDashboard: React.FC = () => {
   }
 
   return (
-    <DashboardLayout title="Dashboard - Consultor">
+    <DashboardLayout>
+      {/* Consultant Summary */}
+      <div className="tsf-dashboard-header tsf-mb-xl tsf-p-md">
+        <div className="tsf-dashboard-welcome">
+          <h2 className="tsf-text-2xl tsf-font-medium tsf-mb-sm">
+            Hello, Consultant
+          </h2>
+          <p className="tsf-text-secondary tsf-text-base">
+            Welcome to your consultant dashboard. Here you can create and manage funds, assignors, and debtors.
+          </p>
+        </div>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="tsf-grid-stats mb-16 tsf-mb-2xl tsf-gap-md">
+        <Card className="tsf-stat-card tsf-p-md">
+          <div className="tsf-stat-icon tsf-stat-icon--purple">
+            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <div className="tsf-stat-content tsf-mt-sm">
+            <h3 className="tsf-stat-value tsf-text-xl">
+              {funds.length}
+            </h3>
+            <p className="tsf-stat-label">Total Funds</p>
+          </div>
+        </Card>
+        
+        <Card className="tsf-stat-card tsf-p-md">
+          <div className="tsf-stat-icon tsf-stat-icon--blue">
+            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div className="tsf-stat-content tsf-mt-sm">
+            <h3 className="tsf-stat-value tsf-text-xl">
+              {funds.filter(f => f.status === "PENDING").length}
+            </h3>
+            <p className="tsf-stat-label">Pending Approval</p>
+          </div>
+        </Card>
+      </div>
+
       {/* Action Button */}
-      <div className="tsf-dashboard-actions">
+      <div className="tsf-dashboard-actions tsf-mb-lg">
         <Button
-          variant={showForm ? "secondary" : "primary"}
+          variant="primary"
           size="md"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setIsModalOpen(true)}
           icon={<PlusIcon className="tsf-icon-sm" />}
         >
-          {showForm ? "Cancelar" : "Criar Fundo"}
+          Create Fund
         </Button>
       </div>
 
-      {/* Form Section */}
-      {showForm && (
-        <Card title="Criar Novo Fundo" className="tsf-mb-lg">
-          <form onSubmit={handleSubmit} className="tsf-form-grid">
-            <Input
-              label="Nome do Fundo"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Ex: Fundo Imobiliário ABC"
-            />
-            
-            <Input
-              label="Símbolo"
-              type="text"
-              name="symbol"
-              value={formData.symbol}
-              onChange={handleChange}
-              required
-              placeholder="Ex: FABC11"
-            />
-            
-            <div className="tsf-form-full-width">
-              <Input
-                label="Descrição"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                multiline
-                rows={3}
-                placeholder="Descreva o fundo e seus objetivos..."
-              />
-            </div>
-            
-            <Input
-              label="Valor Alvo (R$)"
-              type="number"
-              name="targetAmount"
-              value={formData.targetAmount}
-              onChange={handleChange}
-              step="0.01"
-              placeholder="1000000.00"
-            />
-            
-            <Input
-              label="Oferta Máxima (cotas)"
-              type="number"
-              name="maxSupply"
-              value={formData.maxSupply}
-              onChange={handleChange}
-              required
-              placeholder="10000"
-            />
-            
-            <Input
-              label="Preço por Cota (R$)"
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              step="0.01"
-              required
-              placeholder="100.00"
-            />
-            
-            <div className="tsf-form-full-width">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                loading={loading}
-                fullWidth
-              >
-                {loading ? "Criando..." : "Criar Fundo"}
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
+      {/* Fund Creation Modal */}
+      <FundCreationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onFundCreated={handleFundCreated}
+      />
 
       {/* Funds Content Section */}
-      <Card title="Meus Fundos">
+      <div className="tsf-content-wrapper tsf-p-md">
+        <Card title="My Funds" className="tsf-p-lg">
         <div className="tsf-alert tsf-alert--warning tsf-mb-md">
-          ⚠️ Fundos criados precisam ser aprovados pelo gestor antes de ficarem disponíveis para investimento.
+          ⚠️ Created funds need to be approved by the manager before they become available for investment.
         </div>
         <div className="tsf-text-xs tsf-text-secondary tsf-mb-sm">
-          Total de fundos carregados: {funds.length}
+          Total funds loaded: {funds.length}
         </div>
         
         {loading ? (
-          <div className="tsf-loading-spinner">
-            <div className="tsf-spinner"></div>
+          <div className="tsf-loading-container">
+            <div className="tsf-loading-spinner">
+              <div className="tsf-spinner"></div>
+            </div>
+            <p className="tsf-loading-text">Loading funds...</p>
           </div>
         ) : (
-          <div className="tsf-funds-grid">
-            {funds.map((fund) => (
-              <Card key={fund.id} className="tsf-fund-card">
-                <div className="tsf-fund-header">
-                  <h4 className="tsf-fund-title">{fund.name}</h4>
-                  <span className={`tsf-status-badge tsf-status-${fund.status.toLowerCase()}`}>
-                    {fund.status === "PENDING"
-                      ? "Aguardando Aprovação"
-                      : fund.status === "APPROVED"
-                      ? "Aprovado"
+          <div className="tsf-funds-grid tsf-space-y-lg">
+            {funds.map((fund, index) => (
+              <Card key={fund.id} className={`tsf-approval-card tsf-p-md tsf-border-l-primary card-${index}`}>
+                <div className="tsf-fund-header tsf-mb-md">
+                  <div className="tsf-flex tsf-items-center tsf-justify-between">
+                    <h4 className="tsf-font-medium tsf-text-lg">{fund.name}</h4>
+                    <span className={`tsf-status-badge ${fund.status === "PENDING" 
+                      ? "tsf-status-pending"
+                      : fund.status === "APPROVED" 
+                      ? "tsf-status-approved"
                       : fund.status === "REJECTED"
-                      ? "Rejeitado"
-                      : fund.status}
-                  </span>
+                      ? "tsf-status-rejected"
+                      : "tsf-status-pending"}`}
+                    >
+                      {fund.status === "PENDING"
+                        ? "Pending Approval"
+                        : fund.status === "APPROVED"
+                        ? "Approved"
+                        : fund.status === "REJECTED"
+                        ? "Rejected"
+                        : fund.status}
+                    </span>
+                  </div>
                 </div>
                 
-                <p className="tsf-fund-description">{fund.description}</p>
+                <p className="tsf-text-secondary tsf-text-sm tsf-mb-md">{fund.description}</p>
                 
-                <div className="tsf-fund-details">
+                <div className="tsf-fund-details tsf-mb-lg" style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(2, 1fr)', 
+                  gap: 'var(--spacing-sm)' 
+                }}>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Símbolo:</span>
+                    <span className="tsf-detail-label">Symbol:</span>
                     <span className="tsf-detail-value">{fund.symbol}</span>
                   </div>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Meta:</span>
+                    <span className="tsf-detail-label">Target:</span>
                     <span className="tsf-detail-value">
                       R$ {fund.targetAmount?.toLocaleString("pt-BR") || "N/A"}
                     </span>
                   </div>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Oferta Máxima:</span>
+                    <span className="tsf-detail-label">Max Supply:</span>
                     <span className="tsf-detail-value">
-                      {fund.maxSupply.toLocaleString("pt-BR")} cotas
+                      {fund.maxSupply.toLocaleString("pt-BR")} quotas
                     </span>
                   </div>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Emitidas:</span>
+                    <span className="tsf-detail-label">Issued:</span>
                     <span className="tsf-detail-value">
-                      {fund.totalIssued.toLocaleString("pt-BR")} cotas
+                      {fund.totalIssued.toLocaleString("pt-BR")} quotas
                     </span>
                   </div>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Preço:</span>
+                    <span className="tsf-detail-label">Price:</span>
                     <span className="tsf-detail-value tsf-highlight">
                       R$ {fund.price.toLocaleString("pt-BR")}
                     </span>
                   </div>
                   <div className="tsf-fund-detail">
-                    <span className="tsf-detail-label">Criado em:</span>
+                    <span className="tsf-detail-label">Created:</span>
                     <span className="tsf-detail-value">
-                      {new Date(fund.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(fund.createdAt).toLocaleDateString("en-US")}
                     </span>
                   </div>
                 </div>
@@ -288,27 +220,37 @@ const ConsultorDashboard: React.FC = () => {
                     onClick={() => setSelectedFund(fund)}
                     icon={<BuildingOfficeIcon className="tsf-icon-sm" />}
                   >
-                    Gerenciar Cedentes/Sacados
+                    Manage Assignors/Debtors
                   </Button>
                 </div>
               </Card>
             ))}
             
             {funds.length === 0 && !loading && (
-              <div className="tsf-empty-state">
-                <CurrencyDollarIcon className="tsf-empty-icon" />
-                <p className="tsf-empty-title">Nenhum fundo encontrado</p>
-                <p className="tsf-empty-description">
-                  Comece criando seu primeiro fundo!
-                </p>
-                <div className="tsf-text-xs tsf-text-tertiary tsf-mt-sm">
-                  Debug: API respondeu mas sem fundos para este consultor
+              <Card className="tsf-empty-state-card tsf-p-xl tsf-text-center">
+                <div className="tsf-empty-state">
+                  <div className="tsf-empty-icon tsf-mb-md">
+                    <CurrencyDollarIcon className="tsf-h-12 tsf-w-12 tsf-text-secondary/50" />
+                  </div>
+                  <h3 className="tsf-empty-title tsf-text-xl tsf-mb-sm">No funds found</h3>
+                  <p className="tsf-empty-description tsf-text-secondary tsf-mb-md">
+                    Start by creating your first fund!
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => setIsModalOpen(true)}
+                    icon={<PlusIcon className="tsf-icon-sm" />}
+                  >
+                    Create Fund
+                  </Button>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         )}
-      </Card>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 };
