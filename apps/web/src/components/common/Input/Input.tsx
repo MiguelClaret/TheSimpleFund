@@ -3,6 +3,7 @@ import './Input.css';
 
 export interface InputProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
+  id?: string;
   name?: string;
   value?: string;
   placeholder?: string;
@@ -15,6 +16,8 @@ export interface InputProps {
   rows?: number;
   multiline?: boolean;
   className?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -22,6 +25,7 @@ export interface InputProps {
 
 const Input: React.FC<InputProps> = ({
   type = 'text',
+  id,
   name,
   value,
   placeholder,
@@ -34,6 +38,8 @@ const Input: React.FC<InputProps> = ({
   rows = 3,
   multiline = false,
   className = '',
+  leftIcon,
+  rightIcon,
   onChange,
   onFocus,
   onBlur,
@@ -42,6 +48,8 @@ const Input: React.FC<InputProps> = ({
     tsf-input
     ${error ? 'tsf-input--error' : ''}
     ${disabled ? 'tsf-input--disabled' : ''}
+    ${leftIcon ? 'tsf-input--with-left-icon' : ''}
+    ${rightIcon ? 'tsf-input--with-right-icon' : ''}
     ${className}
   `.trim();
 
@@ -50,25 +58,40 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className="tsf-input-wrapper">
       {label && (
-        <label className="tsf-input-label">
+        <label htmlFor={id} className="tsf-input-label">
           {label}
           {required && <span className="tsf-input-required">*</span>}
         </label>
       )}
       
-      <InputComponent
-        {...(multiline ? { rows } : { type, step })}
-        name={name}
-        value={value}
-        placeholder={placeholder}
-        required={required}
-        disabled={disabled}
-        className={inputClasses}
-        onChange={onChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        style={{ color: 'white' }} // Ensure text is visible in dark mode
-      />
+      <div className="tsf-input-container">
+        {leftIcon && (
+          <div className="tsf-input-icon tsf-input-icon--left">
+            {leftIcon}
+          </div>
+        )}
+        
+        <InputComponent
+          id={id}
+          {...(multiline ? { rows } : { type, step })}
+          name={name}
+          value={value}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+          className={inputClasses}
+          onChange={onChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          style={{ color: 'white' }} // Ensure text is visible in dark mode
+        />
+        
+        {rightIcon && (
+          <div className="tsf-input-icon tsf-input-icon--right">
+            {rightIcon}
+          </div>
+        )}
+      </div>
       
       {error && <div className="tsf-input-error">{error}</div>}
       {helperText && !error && <div className="tsf-input-helper">{helperText}</div>}

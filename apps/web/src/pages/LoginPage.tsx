@@ -100,54 +100,29 @@ const LoginPage: React.FC = () => {
       subtitle="Access your TSF account and manage your tokenized investments"
       illustration={loginIllustration}
     >
-      <form className="tsf-form-group" onSubmit={handleSubmit} style={{ marginBottom: 'var(--spacing-xl)' }}>
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-          <Input
-            id="email"
-            type="email"
-            label="Email Address"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            leftIcon={
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M2 4L8 8L14 4M2 4V12C2 12.5523 2.44772 13 3 13H13C13.5523 13 14 12.5523 14 12V4M2 4C2 3.44772 2.44772 3 3 3H13C13.5523 3 14 3.44772 14 4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            }
-            style={{ color: 'var(--text-primary)' }}
-          />
-        </div>
+      <form className="tsf-form-group" onSubmit={handleSubmit} style={{ marginBottom: 'var(--spacing-md)' }}>
+        <Input
+          id="email"
+          type="email"
+          label="Email Address"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          
+          
+        />
 
-        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-          <Input
-            id="password"
-            type="password"
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            leftIcon={
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 7V5C4 3.89543 4.89543 3 6 3H10C11.1046 3 12 3.89543 12 5V7M3 7H13C13.5523 7 14 7.44772 14 8V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            }
-            style={{ color: 'var(--text-primary)' }}
-          />
-        </div>
+        <Input
+          id="password"
+          type="password"
+          label="Password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          
+        />
 
         <Button
           type="submit"
@@ -155,7 +130,7 @@ const LoginPage: React.FC = () => {
           size="lg"
           loading={loading}
           className="w-full"
-          style={{ marginTop: 'var(--spacing-md)' }}
+          style={{ marginTop: 'var(--spacing-sm)' }}
         >
           {loading ? 'Signing In...' : 'Sign In'}
         </Button>
