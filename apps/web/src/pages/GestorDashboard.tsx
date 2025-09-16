@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { cedenteService, sacadoService, fundService } from '../services/api';
+import { cedenteService, sacadoService, fundService, userService } from '../services/api';
 import toast from 'react-hot-toast';
 
 interface Cedente {
@@ -54,8 +54,9 @@ interface User {
 
 const GestorDashboard: React.FC = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'consultores' | 'fundos' | 'cedentes' | 'sacados'>('consultores');
+  const [activeTab, setActiveTab] = useState<'consultores' | 'investidores' | 'fundos' | 'cedentes' | 'sacados'>('consultores');
   const [consultores, setConsultores] = useState<User[]>([]);
+  const [investidores, setInvestidores] = useState<User[]>([]);
   const [funds, setFunds] = useState<Fund[]>([]);
   const [cedentes, setCedentes] = useState<Cedente[]>([]);
   const [sacados, setSacados] = useState<Sacado[]>([]);
@@ -64,15 +65,22 @@ const GestorDashboard: React.FC = () => {
   const loadConsultores = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/users/consultores', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await response.json();
-      setConsultores(data.consultores || []);
+      const data = await userService.getConsultores();
+      setConsultores(data);
     } catch {
       toast.error('Erro ao carregar consultores');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadInvestidores = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await userService.getInvestidores();
+      setInvestidores(data);
+    } catch {
+      toast.error('Erro ao carregar investidores');
     } finally {
       setLoading(false);
     }
@@ -119,6 +127,9 @@ const GestorDashboard: React.FC = () => {
       case 'consultores':
         await loadConsultores();
         break;
+      case 'investidores':
+        await loadInvestidores();
+        break;
       case 'fundos':
         await loadFunds();
         break;
@@ -129,7 +140,7 @@ const GestorDashboard: React.FC = () => {
         await loadSacados();
         break;
     }
-  }, [activeTab, loadConsultores, loadFunds, loadCedentes, loadSacados]);
+  }, [activeTab, loadConsultores, loadInvestidores, loadFunds, loadCedentes, loadSacados]);
 
   useEffect(() => {
     loadData();
@@ -137,17 +148,7 @@ const GestorDashboard: React.FC = () => {
 
   const handleApproveConsultor = async (id: string, action: 'approve' | 'reject') => {
     try {
-      const response = await fetch(`/api/users/${id}/approval`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ status: action === 'approve' ? 'APPROVED' : 'REJECTED' }),
-      });
-
-      if (!response.ok) throw new Error();
-
+      await userService.approveUser(id, action);
       toast.success(`Consultor ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
       loadConsultores();
     } catch {
@@ -155,23 +156,35 @@ const GestorDashboard: React.FC = () => {
     }
   };
 
+  const handleApproveInvestidor = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      await userService.approveUser(id, action);
+      toast.success(`Investidor ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      loadInvestidores();
+    } catch {
+      toast.error('Erro ao processar aprovação');
+    }
+  };
+
   const handleApproveFund = async (id: string, action: 'approve' | 'reject') => {
     try {
-      const response = await fetch(`/api/funds/${id}/approval`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ status: action === 'approve' ? 'APPROVED' : 'REJECTED' }),
-      });
-
-      if (!response.ok) throw new Error();
-
+      await fundService.approve(id, action === 'approve' ? 'APPROVED' : 'REJECTED');
       toast.success(`Fundo ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
       loadFunds();
     } catch {
       toast.error('Erro ao processar aprovação');
+    }
+  };
+
+  const handleDeactivateFund = async (id: string) => {
+    if (!confirm('Tem certeza que deseja desativar este fundo?')) return;
+    
+    try {
+      await fundService.deactivate(id);
+      toast.success('Fundo desativado com sucesso!');
+      loadFunds();
+    } catch {
+      toast.error('Erro ao desativar fundo');
     }
   };
 
@@ -231,6 +244,16 @@ const GestorDashboard: React.FC = () => {
               }`}
             >
               Consultores
+            </button>
+            <button
+              onClick={() => setActiveTab('investidores')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'investidores'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Investidores
             </button>
             <button
               onClick={() => setActiveTab('fundos')}
@@ -321,6 +344,61 @@ const GestorDashboard: React.FC = () => {
               )}
             </div>
           </div>
+        ) : activeTab === 'investidores' ? (
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium mb-4">Investidores</h3>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {investidores.map((investidor) => (
+                    <div key={investidor.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{investidor.email}</h4>
+                          <p className="text-sm text-gray-500">
+                            Cadastrado em: {new Date(investidor.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            investidor.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            investidor.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {investidor.status === 'PENDING' ? 'Pendente' :
+                             investidor.status === 'APPROVED' ? 'Aprovado' : 'Rejeitado'}
+                          </span>
+                        </div>
+                        {investidor.status === 'PENDING' && (
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => handleApproveInvestidor(investidor.id, 'approve')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Aprovar
+                            </button>
+                            <button
+                              onClick={() => handleApproveInvestidor(investidor.id, 'reject')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Rejeitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {investidores.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Nenhum investidor cadastrado
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         ) : activeTab === 'fundos' ? (
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
@@ -360,29 +438,46 @@ const GestorDashboard: React.FC = () => {
                             fund.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                             fund.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                             fund.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            fund.status === 'CLOSED' ? 'bg-gray-100 text-gray-800' :
                             'bg-blue-100 text-blue-800'
                           }`}>
                             {fund.status === 'PENDING' ? 'Pendente' :
                              fund.status === 'APPROVED' ? 'Aprovado' :
-                             fund.status === 'REJECTED' ? 'Rejeitado' : fund.status}
+                             fund.status === 'REJECTED' ? 'Rejeitado' :
+                             fund.status === 'CLOSED' ? 'Fechado' : fund.status}
                           </span>
                         </div>
-                        {fund.status === 'PENDING' && (
-                          <div className="ml-4 space-x-2">
+                        <div className="ml-4 space-x-2">
+                          {fund.status === 'PENDING' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveFund(fund.id, 'approve')}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Aprovar
+                              </button>
+                              <button
+                                onClick={() => handleApproveFund(fund.id, 'reject')}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Rejeitar
+                              </button>
+                            </>
+                          )}
+                          {(fund.status === 'APPROVED' || fund.status === 'ACTIVE') && (
                             <button
-                              onClick={() => handleApproveFund(fund.id, 'approve')}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                              onClick={() => handleDeactivateFund(fund.id)}
+                              className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
                             >
-                              Aprovar
+                              Desativar
                             </button>
-                            <button
-                              onClick={() => handleApproveFund(fund.id, 'reject')}
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                            >
-                              Rejeitar
-                            </button>
-                          </div>
-                        )}
+                          )}
+                          {fund.status === 'CLOSED' && (
+                            <span className="px-3 py-1 text-sm text-gray-500 bg-gray-100 rounded">
+                              Fechado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

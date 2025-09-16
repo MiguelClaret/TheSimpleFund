@@ -52,6 +52,26 @@ export const authService = {
   }
 };
 
+// User service
+export const userService = {
+  getConsultores: async () => {
+    const response = await api.get('/users/consultores');
+    return response.data.consultores || [];
+  },
+
+  getInvestidores: async () => {
+    const response = await api.get('/users/investidores');
+    return response.data.investidores || [];
+  },
+
+  approveUser: async (id: string, action: 'approve' | 'reject') => {
+    const response = await api.patch(`/users/${id}/approval`, {
+      status: action === 'approve' ? 'APPROVED' : 'REJECTED'
+    });
+    return response.data;
+  }
+};
+
 // Cedente service
 export const cedenteService = {
   create: async (data: any) => {
@@ -112,6 +132,16 @@ export const fundService = {
 
   issueQuotas: async (id: string, amount: number) => {
     const response = await api.post(`/funds/${id}/issue`, { amount });
+    return response.data;
+  },
+
+  deactivate: async (id: string) => {
+    const response = await api.patch(`/funds/${id}/deactivate`);
+    return response.data;
+  },
+
+  approve: async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    const response = await api.patch(`/funds/${id}/approval`, { status });
     return response.data;
   }
 };

@@ -50,7 +50,40 @@ export async function userRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Approve/reject consultor
+  // Get investidores (only for gestores)
+  fastify.get('/investidores', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return reply.status(401).send({ error: 'No token provided' });
+      }
+
+      const user = verifyToken(token);
+      
+      if (user.role !== 'GESTOR') {
+        return reply.status(403).send({ error: 'Access denied' });
+      }
+
+      const investidores = await fastify.prisma.user.findMany({
+        where: { role: 'INVESTIDOR' },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          status: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return { investidores };
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Approve/reject user (consultor or investidor)
   fastify.patch('/:id/approval', async (request, reply) => {
     try {
       const token = request.headers.authorization?.replace('Bearer ', '');
@@ -67,12 +100,17 @@ export async function userRoutes(fastify: FastifyInstance) {
 
       const body = approvalSchema.parse(request.body);
       
-      const consultor = await fastify.prisma.user.findUnique({
-        where: { id: params.id, role: 'CONSULTOR' }
+      const targetUser = await fastify.prisma.user.findUnique({
+        where: { id: params.id }
       });
 
-      if (!consultor) {
-        return reply.status(404).send({ error: 'Consultor not found' });
+      if (!targetUser) {
+        return reply.status(404).send({ error: 'User not found' });
+      }
+
+      // Verify user is either consultor or investidor
+      if (targetUser.role !== 'CONSULTOR' && targetUser.role !== 'INVESTIDOR') {
+        return reply.status(400).send({ error: 'Only consultors and investors can be approved' });
       }
 
       const updatedUser = await fastify.prisma.user.update({

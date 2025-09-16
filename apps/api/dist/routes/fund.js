@@ -19,7 +19,7 @@ function verifyToken(token) {
     }
 }
 export async function fundRoutes(fastify) {
-    // Create fund (Consultor only)
+    // Create fund (Gestor only)
     fastify.post('/', async (request, reply) => {
         try {
             const token = request.headers.authorization?.replace('Bearer ', '');
@@ -27,8 +27,17 @@ export async function fundRoutes(fastify) {
                 return reply.status(401).send({ error: 'No token provided' });
             }
             const payload = verifyToken(token);
-            if (payload.role !== 'CONSULTOR') {
-                return reply.status(403).send({ error: 'Only consultors can create funds' });
+            if (payload.role !== 'GESTOR' && payload.role !== 'CONSULTOR') {
+                return reply.status(403).send({ error: 'Only gestors and consultors can create funds' });
+            }
+            // If it's a consultor, check if they are approved
+            if (payload.role === 'CONSULTOR') {
+                const consultor = await fastify.prisma.user.findUnique({
+                    where: { id: payload.userId }
+                });
+                if (!consultor || consultor.status !== 'APPROVED') {
+                    return reply.status(403).send({ error: 'Consultor must be approved to create funds' });
+                }
             }
             const body = createFundSchema.parse(request.body);
             // Check if symbol already exists
@@ -38,8 +47,16 @@ export async function fundRoutes(fastify) {
             if (existingFund) {
                 return reply.status(400).send({ error: 'Symbol already exists' });
             }
+            // Prepare fund data
+            const fundData = {
+                ...body,
+                // Funds created by consultors start as PENDING, by gestors as APPROVED
+                status: payload.role === 'CONSULTOR' ? 'PENDING' : 'APPROVED',
+                // Associate consultor if applicable
+                ...(payload.role === 'CONSULTOR' && { consultorId: payload.userId })
+            };
             const fund = await fastify.prisma.fund.create({
-                data: body
+                data: fundData
             });
             return { fund };
         }
@@ -234,6 +251,42 @@ export async function fundRoutes(fastify) {
             if (error instanceof z.ZodError) {
                 return reply.status(400).send({ error: 'Invalid input', details: error.errors });
             }
+            fastify.log.error(error);
+            return reply.status(500).send({ error: 'Internal server error' });
+        }
+    });
+    // Deactivate fund (Gestor only)
+    fastify.patch('/:id/deactivate', async (request, reply) => {
+        try {
+            const token = request.headers.authorization?.replace('Bearer ', '');
+            if (!token) {
+                return reply.status(401).send({ error: 'No token provided' });
+            }
+            const user = verifyToken(token);
+            const params = request.params;
+            if (user.role !== 'GESTOR') {
+                return reply.status(403).send({ error: 'Access denied' });
+            }
+            const fund = await fastify.prisma.fund.findUnique({
+                where: { id: params.id }
+            });
+            if (!fund) {
+                return reply.status(404).send({ error: 'Fund not found' });
+            }
+            const updatedFund = await fastify.prisma.fund.update({
+                where: { id: params.id },
+                data: { status: 'CLOSED' },
+                include: {
+                    consultor: {
+                        select: {
+                            email: true
+                        }
+                    }
+                }
+            });
+            return { fund: updatedFund };
+        }
+        catch (error) {
             fastify.log.error(error);
             return reply.status(500).send({ error: 'Internal server error' });
         }

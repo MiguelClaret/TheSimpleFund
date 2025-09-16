@@ -292,4 +292,46 @@ export async function fundRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });
+
+  // Deactivate fund (Gestor only)
+  fastify.patch('/:id/deactivate', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return reply.status(401).send({ error: 'No token provided' });
+      }
+
+      const user = verifyToken(token);
+      const params = request.params as { id: string };
+      
+      if (user.role !== 'GESTOR') {
+        return reply.status(403).send({ error: 'Access denied' });
+      }
+      
+      const fund = await fastify.prisma.fund.findUnique({
+        where: { id: params.id }
+      });
+
+      if (!fund) {
+        return reply.status(404).send({ error: 'Fund not found' });
+      }
+
+      const updatedFund = await fastify.prisma.fund.update({
+        where: { id: params.id },
+        data: { status: 'CLOSED' },
+        include: {
+          consultor: {
+            select: {
+              email: true
+            }
+          }
+        }
+      });
+
+      return { fund: updatedFund };
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
 }
