@@ -19,10 +19,10 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(email, password);
-      toast.success('Login realizado com sucesso!');
+      toast.success('Login successful!');
       navigate('/dashboard');
     } catch {
-      toast.error('Erro ao fazer login. Verifique suas credenciais.');
+      toast.error('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -41,10 +41,10 @@ const LoginPage: React.FC = () => {
       setPassword(cred.password);
       try {
         await login(cred.email, cred.password);
-        toast.success(`Login como ${userType} realizado!`);
+        toast.success(`Logged in as ${userType}!`);
         navigate('/dashboard');
       } catch {
-        toast.error('Erro ao fazer login automático.');
+        toast.error('Automatic login failed.');
       }
     }
   };

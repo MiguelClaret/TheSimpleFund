@@ -55,7 +55,7 @@ const InvestidorDashboard: React.FC = () => {
       const response = await fundService.list();
       setFunds(response.filter((fund: Fund) => fund.status === 'APPROVED'));
     } catch {
-      toast.error('Erro ao carregar fundos');
+      toast.error('Error loading funds');
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ const InvestidorDashboard: React.FC = () => {
       const response = await orderService.list();
       setOrders(response);
     } catch {
-      toast.error('Erro ao carregar portfólio');
+      toast.error('Error loading portfolio');
     } finally {
       setLoading(false);
     }
@@ -90,34 +90,34 @@ const InvestidorDashboard: React.FC = () => {
       const response = await stellarService.generateKeys();
       setStellarKeys(response);
       await updateStellarKey(response.publicKey, response.secretKey);
-      toast.success('Chaves Stellar geradas com sucesso!');
+      toast.success('Stellar keys generated successfully!');
     } catch {
-      toast.error('Erro ao gerar chaves Stellar');
+      toast.error('Error generating Stellar keys');
     }
   };
 
   const fundAccount = async () => {
     if (!stellarKeys) {
-      toast.error('Gere as chaves Stellar primeiro');
+      toast.error('Generate Stellar keys first');
       return;
     }
 
     try {
       await stellarService.fundAccount(stellarKeys.publicKey);
-      toast.success('Conta financiada com XLM de teste!');
+      toast.success('Account funded with test XLM!');
     } catch {
-      toast.error('Erro ao financiar conta');
+      toast.error('Error funding account');
     }
   };
 
   const handleInvestment = async () => {
     if (!selectedFund || !investmentAmount) {
-      toast.error('Selecione um fundo e valor de investimento');
+      toast.error('Select a fund and investment amount');
       return;
     }
 
     if (!stellarKeys) {
-      toast.error('Gere as chaves Stellar primeiro');
+      toast.error('Generate Stellar keys first');
       return;
     }
 
@@ -131,23 +131,23 @@ const InvestidorDashboard: React.FC = () => {
         quantity: amount
       });
       
-      toast('Adicionando investidor à whitelist...', { icon: 'ℹ️' });
+      toast('Adding investor to whitelist...', { icon: 'ℹ️' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast('Mintando tokens para o investidor...', { icon: '🪙' });
+      toast('Minting tokens for investor...', { icon: '🪙' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast('Atualizando saldo de tokens...', { icon: '📊' });
+      toast('Updating token balance...', { icon: '📊' });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success(`Investimento de R$ ${amount.toLocaleString('pt-BR')} realizado com sucesso!`);
-      toast.success(`Você recebeu ${amount} tokens ${selectedFund.symbol || 'FUND'}!`);
+      toast.success(`Investment of R$ ${amount.toLocaleString('en-US')} completed successfully!`);
+      toast.success(`You received ${amount} ${selectedFund.symbol || 'FUND'} tokens!`);
       
       setSelectedFund(null);
       setInvestmentAmount('');
       loadOrders();
     } catch {
-      toast.error('Erro ao criar ordem de investimento');
+      toast.error('Error creating investment order');
     } finally {
       setLoading(false);
     }
@@ -169,11 +169,11 @@ const InvestidorDashboard: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'Concluída';
+        return 'Completed';
       case 'pending':
-        return 'Pendente';
+        return 'Pending';
       case 'cancelled':
-        return 'Cancelada';
+        return 'Cancelled';
       default:
         return status;
     }
@@ -181,11 +181,11 @@ const InvestidorDashboard: React.FC = () => {
 
   return (
     <>
-      {/* Modal de Aguardando Aprovação */}
+      {/* Awaiting Approval Modal */}
       <Modal
         isOpen={user?.status !== 'APPROVED'}
         onClose={() => {}}
-        title="Aguardando Aprovação"
+        title="Awaiting Approval"
         closeOnOverlayClick={false}
         showCloseButton={false}
         size="md"
@@ -197,21 +197,21 @@ const InvestidorDashboard: React.FC = () => {
           
           <div className="tsf-mb-lg">
             <p className="tsf-mb-md">
-              Sua conta de investidor está sendo analisada pela equipe de gestão. 
-              Aguarde a aprovação para acessar todas as funcionalidades da plataforma.
+              Your investor account is being reviewed by the management team.
+              Please wait for approval to access all platform features.
             </p>
             
             <Card className="tsf-alert tsf-alert--warning">
-              <h4 className="tsf-text-sm tsf-font-medium tsf-mb-sm">Status atual:</h4>
+              <h4 className="tsf-text-sm tsf-font-medium tsf-mb-sm">Current status:</h4>
               <div className="tsf-flex tsf-items-center tsf-justify-center">
                 <span className={`tsf-status-badge tsf-status-${
                   user?.status === 'PENDING' ? 'pending' :
                   user?.status === 'REJECTED' ? 'rejected' :
                   'pending'
                 }`}>
-                  {user?.status === 'PENDING' ? 'Pendente de Aprovação' :
-                   user?.status === 'REJECTED' ? 'Reprovado' :
-                   user?.status || 'Em Análise'}
+                  {user?.status === 'PENDING' ? 'Pending Approval' :
+                   user?.status === 'REJECTED' ? 'Rejected' :
+                   user?.status || 'Under Review'}
                 </span>
               </div>
             </Card>
@@ -219,13 +219,13 @@ const InvestidorDashboard: React.FC = () => {
             {user?.status === 'REJECTED' && (
               <Card className="tsf-alert tsf-alert--error tsf-mt-md">
                 <p className="tsf-text-sm">
-                  Sua conta foi reprovada. Entre em contato com o suporte para mais informações.
+                  Your account was rejected. Please contact support for more information.
                 </p>
               </Card>
             )}
             
             <p className="tsf-text-xs tsf-text-tertiary tsf-mt-md">
-              📧 Em caso de dúvidas, entre em contato: suporte@vero.com.br
+              📧 For questions, contact: suporte@vero.com.br
             </p>
           </div>
           
@@ -236,14 +236,14 @@ const InvestidorDashboard: React.FC = () => {
               onClick={async () => {
                 try {
                   await refreshUser();
-                  toast.success('Status atualizado!');
+                  toast.success('Status updated!');
                 } catch {
-                  toast.error('Erro ao atualizar status');
+                  toast.error('Error updating status');
                 }
               }}
               className="tsf-flex-1"
             >
-              Atualizar Status
+              Update Status
             </Button>
             <Button
               variant="secondary"
@@ -251,7 +251,7 @@ const InvestidorDashboard: React.FC = () => {
               onClick={logout}
               className="tsf-flex-1"
             >
-              Sair
+              Logout
             </Button>
           </div>
         </div>

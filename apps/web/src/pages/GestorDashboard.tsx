@@ -75,7 +75,7 @@ const GestorDashboard: React.FC = () => {
       const data = await userService.getConsultores();
       setConsultores(data);
     } catch {
-      toast.error('Erro ao carregar consultores');
+      toast.error('Error loading consultants');
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ const GestorDashboard: React.FC = () => {
       const data = await userService.getInvestidores();
       setInvestidores(data);
     } catch {
-      toast.error('Erro ao carregar investidores');
+      toast.error('Error loading investors');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ const GestorDashboard: React.FC = () => {
       const response = await fundService.list();
       setFunds(response);
     } catch {
-      toast.error('Erro ao carregar fundos');
+      toast.error('Error loading funds');
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ const GestorDashboard: React.FC = () => {
       const response = await cedenteService.list();
       setCedentes(response);
     } catch {
-      toast.error('Erro ao carregar cedentes');
+      toast.error('Error loading assignors');
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ const GestorDashboard: React.FC = () => {
       const response = await sacadoService.list();
       setSacados(response);
     } catch {
-      toast.error('Erro ao carregar sacados');
+      toast.error('Error loading debtors');
     } finally {
       setLoading(false);
     }
@@ -156,42 +156,42 @@ const GestorDashboard: React.FC = () => {
   const handleApproveConsultor = async (id: string, action: 'approve' | 'reject') => {
     try {
       await userService.approveUser(id, action);
-      toast.success(`Consultor ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      toast.success(`Consultant ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
       loadConsultores();
     } catch {
-      toast.error('Erro ao processar aprovação');
+      toast.error('Error processing approval');
     }
   };
 
   const handleApproveInvestidor = async (id: string, action: 'approve' | 'reject') => {
     try {
       await userService.approveUser(id, action);
-      toast.success(`Investidor ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      toast.success(`Investor ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
       loadInvestidores();
     } catch {
-      toast.error('Erro ao processar aprovação');
+      toast.error('Error processing approval');
     }
   };
 
   const handleApproveFund = async (id: string, action: 'approve' | 'reject') => {
     try {
       await fundService.approve(id, action === 'approve' ? 'APPROVED' : 'REJECTED');
-      toast.success(`Fundo ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      toast.success(`Fund ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
       loadFunds();
     } catch {
-      toast.error('Erro ao processar aprovação');
+      toast.error('Error processing approval');
     }
   };
 
   const handleDeactivateFund = async (id: string) => {
-    if (!confirm('Tem certeza que deseja desativar este fundo?')) return;
+    if (!confirm('Are you sure you want to deactivate this fund?')) return;
     
     try {
       await fundService.deactivate(id);
-      toast.success('Fundo desativado com sucesso!');
+      toast.success('Fund deactivated successfully!');
       loadFunds();
     } catch {
-      toast.error('Erro ao desativar fundo');
+      toast.error('Error deactivating fund');
     }
   };
 
@@ -213,20 +213,20 @@ const GestorDashboard: React.FC = () => {
   const handleApproveCedente = async (id: number, action: 'approve' | 'reject') => {
     try {
       await cedenteService.updateStatus(id.toString(), action === 'approve' ? 'approved' : 'rejected');
-      toast.success(`Cedente ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      toast.success(`Assignor ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
       loadCedentes();
     } catch {
-      toast.error('Erro ao processar aprovação');
+      toast.error('Error processing approval');
     }
   };
 
   const handleApproveSacado = async (id: number, action: 'approve' | 'reject') => {
     try {
       await sacadoService.updateStatus(id.toString(), action === 'approve' ? 'approved' : 'rejected');
-      toast.success(`Sacado ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      toast.success(`Debtor ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
       loadSacados();
     } catch {
-      toast.error('Erro ao processar aprovação');
+      toast.error('Error processing approval');
     }
   };
 
@@ -248,13 +248,13 @@ const GestorDashboard: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'Pendente';
+        return 'Pending';
       case 'APPROVED':
-        return 'Aprovado';
+        return 'Approved';
       case 'REJECTED':
-        return 'Rejeitado';
+        return 'Rejected';
       case 'CLOSED':
-        return 'Fechado';
+        return 'Closed';
       default:
         return status;
     }
@@ -580,7 +580,7 @@ const GestorDashboard: React.FC = () => {
                     </div>
                     <h3 className="tsf-empty-title tsf-text-xl tsf-mb-sm">No investors registered</h3>
                     <p className="tsf-empty-description tsf-text-secondary tsf-mb-md">
-                      Novos investidores aparecerão aqui quando se registrarem na plataforma.
+                      New investors will appear here when they register on the platform.
                     </p>
                   </div>
                 </Card>
@@ -609,30 +609,30 @@ const GestorDashboard: React.FC = () => {
                         gap: 'var(--spacing-sm)' 
                       }}>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Símbolo:</span>
+                          <span className="tsf-detail-label">Symbol:</span>
                           <span className="tsf-detail-value">{fund.symbol}</span>
                         </div>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Preço:</span>
-                          <span className="tsf-detail-value">R$ {fund.price.toLocaleString('pt-BR')}</span>
+                          <span className="tsf-detail-label">Price:</span>
+                          <span className="tsf-detail-value">R$ {fund.price.toLocaleString('en-US')}</span>
                         </div>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Meta:</span>
+                          <span className="tsf-detail-label">Target:</span>
                           <span className="tsf-detail-value">
-                            R$ {fund.targetAmount?.toLocaleString('pt-BR') || 'N/A'}
+                            R$ {fund.targetAmount?.toLocaleString('en-US') || 'N/A'}
                           </span>
                         </div>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Oferta Máxima:</span>
-                          <span className="tsf-detail-value">{fund.maxSupply.toLocaleString('pt-BR')} cotas</span>
+                          <span className="tsf-detail-label">Max Offer:</span>
+                          <span className="tsf-detail-value">{fund.maxSupply.toLocaleString('en-US')} quotas</span>
                         </div>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Cotas Emitidas:</span>
-                          <span className="tsf-detail-value">{fund.totalIssued.toLocaleString('pt-BR')} cotas</span>
+                          <span className="tsf-detail-label">Issued Quotas:</span>
+                          <span className="tsf-detail-value">{fund.totalIssued.toLocaleString('en-US')} quotas</span>
                         </div>
                         <div className="tsf-fund-detail">
-                          <span className="tsf-detail-label">Cotas Disponíveis para Emissão:</span>
-                          <span className="tsf-detail-value">{(fund.maxSupply - fund.totalIssued).toLocaleString('pt-BR')} cotas</span>
+                          <span className="tsf-detail-label">Quotas Available for Issue:</span>
+                          <span className="tsf-detail-value">{(fund.maxSupply - fund.totalIssued).toLocaleString('en-US')} quotas</span>
                         </div>
                       </div>
                       
@@ -683,7 +683,7 @@ const GestorDashboard: React.FC = () => {
                             size="sm"
                             onClick={() => handleDeactivateFund(fund.id)}
                           >
-                            Desativar
+                            Deactivate
                           </Button>
                         </>
                       )}
@@ -716,9 +716,9 @@ const GestorDashboard: React.FC = () => {
                       <div className="tsf-text-sm tsf-text-secondary tsf-space-y-xs">
                         {cedente.document && <p>CPF: {cedente.document}</p>}
                         {cedente.cnpj && <p>CNPJ: {cedente.cnpj}</p>}
-                        <p>Cadastrado em: {new Date(cedente.createdAt).toLocaleDateString('pt-BR')}</p>
+                        <p>Registered on: {new Date(cedente.createdAt).toLocaleDateString('en-US')}</p>
                         {cedente.consultor && (
-                          <p>Consultor: {cedente.consultor.email}</p>
+                          <p>Consultant: {cedente.consultor.email}</p>
                         )}
                       </div>
                       <span className={`tsf-status-badge ${getStatusBadgeClass(cedente.status.toUpperCase())}`}>
@@ -771,9 +771,9 @@ const GestorDashboard: React.FC = () => {
                       <div className="tsf-text-sm tsf-text-secondary tsf-space-y-xs">
                         {sacado.document && <p>CPF: {sacado.document}</p>}
                         {sacado.cnpj && <p>CNPJ: {sacado.cnpj}</p>}
-                        <p>Cadastrado em: {new Date(sacado.createdAt).toLocaleDateString('pt-BR')}</p>
+                        <p>Registered on: {new Date(sacado.createdAt).toLocaleDateString('en-US')}</p>
                         {sacado.consultor && (
-                          <p>Consultor: {sacado.consultor.email}</p>
+                          <p>Consultant: {sacado.consultor.email}</p>
                         )}
                       </div>
                       <span className={`tsf-status-badge ${getStatusBadgeClass(sacado.status.toUpperCase())}`}>
@@ -787,14 +787,14 @@ const GestorDashboard: React.FC = () => {
                           size="sm"
                           onClick={() => handleApproveSacado(sacado.id, 'approve')}
                         >
-                          Aprovar
+                          Approve
                         </Button>
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => handleApproveSacado(sacado.id, 'reject')}
                         >
-                          Rejeitar
+                          Reject
                         </Button>
                       </div>
                     )}

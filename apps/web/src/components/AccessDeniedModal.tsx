@@ -16,20 +16,20 @@ const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
   const getMessage = () => {
     if (userRole === 'CONSULTOR') {
       return {
-        title: 'Acesso Negado',
-        message: 'Sua solicitação para se tornar consultor foi rejeitada. Entre em contato com o suporte para mais informações.',
+        title: 'Access Denied',
+        message: 'Your request to become a consultant was rejected. Please contact support for more information.',
         icon: '❌'
       };
     } else if (userRole === 'INVESTIDOR') {
       return {
-        title: 'Acesso Negado',
-        message: 'Sua conta foi rejeitada pelo administrador. Entre em contato com o suporte para mais informações.',
+        title: 'Access Denied',
+        message: 'Your account was rejected by the administrator. Please contact support for more information.',
         icon: '❌'
       };
     } else {
       return {
-        title: 'Acesso Negado',
-        message: 'Sua conta foi rejeitada. Entre em contato com o suporte para mais informações.',
+        title: 'Access Denied',
+        message: 'Your account was rejected. Please contact support for more information.',
         icon: '❌'
       };
     }
@@ -53,13 +53,13 @@ const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
               onClick={onClose}
               className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
             >
-              Entendi
+              I Understand
             </button>
             <a
               href="mailto:suporte@verosolutions.com"
               className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition-colors text-center"
             >
-              Entrar em Contato com Suporte
+              Contact Support
             </a>
           </div>
         </div>

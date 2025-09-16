@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Carregando...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     );
   }
@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Você não está autenticado.</div>
+        <div className="text-lg">You are not authenticated.</div>
       </div>
     );
   }
@@ -29,7 +29,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (user.status === 'REJECTED') {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Acesso negado.</div>
+        <div className="text-lg text-red-600">Access Denied</div>
       </div>
     );
   }
