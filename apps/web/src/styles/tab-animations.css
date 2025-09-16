@@ -1,0 +1,90 @@
+/* Tab Content Animations */
+.tsf-tab-panel {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: absolute;
+  width: 100%;
+  visibility: hidden;
+}
+
+.tsf-tab-panel.active {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+  visibility: visible;
+}
+
+.tsf-tab-panels {
+  position: relative;
+  min-height: 300px; /* Adjust based on your content */
+}
+
+/* Advanced hover effects for tab buttons */
+.tsf-tab-modern:hover {
+  color: var(--text-primary);
+}
+
+.tsf-tab-modern::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--highlight);
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+  z-index: 2;
+}
+
+.tsf-tab-modern:hover::before {
+  width: 30%;
+}
+
+.tsf-tab-modern--active::before {
+  width: 50%;
+}
+
+/* Card animations within tabs */
+.tsf-tab-panel .tsf-card {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition-delay: calc(var(--card-index, 0) * 0.1s);
+}
+
+.tsf-tab-panel.active .tsf-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Badge animations */
+.tsf-tab-modern .tsf-badge {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tsf-tab-modern:hover .tsf-badge {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(var(--highlight-rgb), 0.2);
+}
+
+/* Loading animation enhancements */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.tsf-loading-text {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Improved spinner */
+.tsf-spinner {
+  border-top-color: var(--highlight);
+}

@@ -1,0 +1,38 @@
+/* App Specific Styles */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--background-dark);
+  color: var(--text-primary);
+}
+
+/* Remove default Vite styles */
+.logo {
+  display: none;
+}
+
+.card {
+  display: none;
+}
+
+.read-the-docs {
+  display: none;
+}
+
+/* App Layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Global overrides for TSF styling */
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure proper full width utility */
+.w-full {
+  width: 100% !important;
+}

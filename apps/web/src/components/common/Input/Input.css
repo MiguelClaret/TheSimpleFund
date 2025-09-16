@@ -1,0 +1,123 @@
+.tsf-input-wrapper {
+  margin-bottom: var(--spacing-md);
+}
+
+.tsf-input-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.tsf-input-required {
+  color: var(--error);
+  margin-left: 2px;
+}
+
+.tsf-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tsf-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  transition: all 0.2s ease;
+  resize: vertical;
+}
+
+.tsf-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.tsf-input-icon--left {
+  left: var(--spacing-md);
+}
+
+.tsf-input-icon--right {
+  right: var(--spacing-md);
+}
+
+.tsf-input--with-left-icon {
+  padding-left: calc(var(--spacing-md) * 2.5);
+}
+
+.tsf-input--with-right-icon {
+  padding-right: calc(var(--spacing-md) * 2.5);
+}
+
+.tsf-input-container:focus-within .tsf-input-icon {
+  color: var(--highlight);
+}
+
+.tsf-input:focus {
+  outline: none;
+  border-color: var(--highlight);
+  box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.2);
+}
+
+.tsf-input::placeholder {
+  color: var(--text-muted);
+}
+
+.tsf-input--error {
+  border-color: var(--error);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.tsf-input--error:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.tsf-input--disabled {
+  background: var(--background-secondary);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tsf-input-error {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--error);
+}
+
+.tsf-input-helper {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Textarea specific styles */
+textarea.tsf-input {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Number input styles */
+/* Hide number input arrows */
+.tsf-input::-webkit-outer-spin-button,
+.tsf-input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tsf-input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}

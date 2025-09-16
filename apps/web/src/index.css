@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import './styles/globals.css';
+@import './styles/tab-animations.css';
+@import './styles/fund-management.css';
+@import './styles/modal-form.css';
+@import './styles/auth-form.css';
+@import './styles/auth-form-fixes.css';

@@ -1,0 +1,188 @@
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/useAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import AuthLayout from '../components/layouts/AuthLayout';
+import Button from '../components/common/Button';
+import { Input } from '../components/common/Form';
+
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      toast.success('Login successful!');
+      navigate('/dashboard');
+    } catch {
+      toast.error('Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickLogin = async (userType: string) => {
+    const credentials = {
+      consultor: { email: 'consultor@vero.com', password: '123456' },
+      gestor: { email: 'gestor@vero.com', password: '123456' },
+      investidor: { email: 'investidor@vero.com', password: '123456' }
+    };
+
+    const cred = credentials[userType as keyof typeof credentials];
+    if (cred) {
+      setEmail(cred.email);
+      setPassword(cred.password);
+      try {
+        await login(cred.email, cred.password);
+        toast.success(`Logged in as ${userType}!`);
+        navigate('/dashboard');
+      } catch {
+        toast.error('Automatic login failed.');
+      }
+    }
+  };
+
+  const loginIllustration = (
+    <div className="tsf-auth-default-illustration">
+      <div className="tsf-auth-illustration__content">
+        <div className="tsf-auth-illustration__icon">
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 120 120"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="60" cy="60" r="50" fill="url(#login-gradient)" opacity="0.1" />
+            <circle cx="60" cy="60" r="30" fill="url(#login-gradient)" opacity="0.2" />
+            <path
+              d="M45 60H75M60 45V75"
+              stroke="url(#login-gradient)"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <circle cx="60" cy="60" r="15" fill="url(#login-gradient)" />
+            <defs>
+              <linearGradient
+                id="login-gradient"
+                x1="0"
+                y1="0"
+                x2="120"
+                y2="120"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#764ba2" />
+                <stop offset="1" stopColor="#f0b90b" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2 className="tsf-auth-illustration__title">
+          Welcome Back
+        </h2>
+        <p className="tsf-auth-illustration__description">
+          Access your tokenized fund portfolio and explore new investment opportunities in the decentralized finance ecosystem.
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <AuthLayout
+      title="Sign In"
+      subtitle="Access your TSF account and manage your tokenized investments"
+      illustration={loginIllustration}
+    >
+      <form className="tsf-form-group" onSubmit={handleSubmit} style={{ marginBottom: 'var(--spacing-md)' }}>
+        <Input
+          id="email"
+          type="email"
+          label="Email Address"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          
+          
+        />
+
+        <Input
+          id="password"
+          type="password"
+          label="Password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          
+        />
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={loading}
+          className="w-full"
+          style={{ marginTop: 'var(--spacing-sm)' }}
+        >
+          {loading ? 'Signing In...' : 'Sign In'}
+        </Button>
+      </form>
+
+      {/* Quick Login Section */}
+      <div className="tsf-form-group">
+        <div className="tsf-auth-separator">
+          <span className="tsf-auth-separator-text">
+            Quick Demo Access
+          </span>
+        </div>
+
+        <div className="tsf-form-row">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => quickLogin('consultor')}
+            className="w-full"
+          >
+            Consultant
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => quickLogin('gestor')}
+            className="w-full"
+          >
+            Fund Manager
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => quickLogin('investidor')}
+            className="w-full"
+          >
+            Investor
+          </Button>
+        </div>
+      </div>
+
+      {/* Register Link */}
+      <div className="tsf-auth-link-container">
+        <p className="tsf-auth-text">
+          Don't have an account?{' '}
+          <Link to="/register" className="tsf-auth-link">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </AuthLayout>
+  );
+};
+
+export default LoginPage;

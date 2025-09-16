@@ -1,0 +1,204 @@
+/* Button Component Styles */
+.tsf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  white-space: nowrap;
+  outline: none;
+  overflow: hidden;
+  gap: var(--spacing-xs);
+}
+
+.tsf-button:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.tsf-button--full-width {
+  width: 100%;
+}
+
+.tsf-button__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.tsf-button__icon {
+  display: flex;
+  align-items: center;
+}
+
+.tsf-button__icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Button Variants */
+.tsf-button--primary {
+  background: var(--button-primary);
+  color: var(--button-primary-text);
+  box-shadow: var(--shadow);
+}
+
+.tsf-button--primary:hover:not(.tsf-button--disabled) {
+  background: var(--button-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.tsf-button--primary:active:not(.tsf-button--disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow);
+}
+
+.tsf-button--secondary {
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--border-color);
+}
+
+.tsf-button--secondary:hover:not(.tsf-button--disabled) {
+  background: var(--button-secondary-hover);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
+}
+
+.tsf-button--outline {
+  background: transparent;
+  color: var(--highlight);
+  border: 1px solid var(--highlight);
+}
+
+.tsf-button--outline:hover:not(.tsf-button--disabled) {
+  background: var(--highlight);
+  color: var(--button-primary-text);
+  transform: translateY(-1px);
+}
+
+.tsf-button--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.tsf-button--ghost:hover:not(.tsf-button--disabled) {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Button Sizes */
+.tsf-button--sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  height: 2rem;
+  min-width: 4rem;
+}
+
+.tsf-button--md {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  height: 2.5rem;
+  min-width: 5rem;
+}
+
+.tsf-button--lg {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  height: 3rem;
+  min-width: 6rem;
+}
+
+/* Button States */
+.tsf-button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.tsf-button--loading {
+  pointer-events: none;
+}
+
+.tsf-button__content--hidden {
+  opacity: 0;
+}
+
+/* Spinner */
+.tsf-button__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tsf-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.tsf-button--sm .tsf-spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.tsf-button--lg .tsf-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Gradient Variant for CTAs */
+.tsf-button--gradient {
+  background: var(--primary-gradient);
+  color: var(--text-primary);
+  border: none;
+}
+
+.tsf-button--gradient:hover:not(.tsf-button--disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xl);
+  filter: brightness(1.1);
+}
+
+/* Full Width */
+.tsf-button--full {
+  width: 100%;
+}
+
+/* Icon Button */
+.tsf-button--icon {
+  padding: var(--spacing-sm);
+  min-width: auto;
+  aspect-ratio: 1;
+}
+
+.tsf-button--icon.tsf-button--sm {
+  padding: var(--spacing-xs);
+}
+
+.tsf-button--icon.tsf-button--lg {
+  padding: var(--spacing-md);
+}

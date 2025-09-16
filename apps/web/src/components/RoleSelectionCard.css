@@ -1,0 +1,390 @@
+/* Role Selection Card Styles */
+
+.tsf-role-selection-card {
+  position: relative;
+  background: var(--background-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-height: 12rem;
+  user-select: none;
+  text-align: center;
+}
+
+.tsf-role-selection-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-light);
+}
+
+.tsf-role-selection-card:active {
+  transform: translateY(-1px);
+}
+
+/* Selected State */
+.tsf-role-selection-card--selected {
+  border-color: var(--highlight);
+  background: linear-gradient(
+    135deg,
+    var(--background-card) 0%,
+    rgba(240, 185, 11, 0.08) 100%
+  );
+  box-shadow: var(--shadow-lg);
+}
+
+.tsf-role-selection-card--selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--highlight);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.tsf-role-selection-card__selected-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--background-card);
+  animation: checkmark-pop 0.3s ease-out;
+  z-index: 5;
+}
+
+/* Disabled State */
+.tsf-role-selection-card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Role Variants */
+.tsf-role-selection-card--investor {
+  --role-color: var(--info);
+}
+
+.tsf-role-selection-card--gestorFundo {
+  --role-color: var(--success);
+}
+
+.tsf-role-selection-card--consultor {
+  --role-color: var(--warning);
+}
+
+/* Header */
+.tsf-role-selection-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.tsf-role-selection-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto var(--spacing-sm);
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--role-color, var(--highlight));
+  font-size: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__icon {
+  background: var(--role-color, var(--highlight));
+  color: var(--background-card);
+  border-color: var(--role-color, var(--highlight));
+  transform: scale(1.1);
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__icon {
+  background: var(--highlight);
+  color: var(--background-card);
+  border-color: var(--highlight);
+}
+
+.tsf-role-selection-card__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__badge {
+  opacity: 1;
+}
+
+.tsf-role-selection-card__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--highlight);
+  color: var(--background-card);
+  border-radius: 50%;
+  animation: checkmark-pop 0.3s ease-out;
+}
+
+@keyframes checkmark-pop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Content */
+.tsf-role-selection-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.tsf-role-selection-card__title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-xs);
+  line-height: var(--line-height-tight);
+  text-align: center;
+}
+
+.tsf-role-selection-card__description {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 2.8rem;
+}
+
+/* Features */
+.tsf-role-selection-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.tsf-role-selection-card__features-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.tsf-role-selection-card__features-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.tsf-role-selection-card__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.tsf-role-selection-card__feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--role-color, var(--highlight));
+  flex-shrink: 0;
+}
+
+/* Footer */
+.tsf-role-selection-card__footer {
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.tsf-role-selection-card__action {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition-fast);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__action {
+  color: var(--role-color, var(--highlight));
+}
+
+.tsf-role-selection-card__selected-text {
+  color: var(--highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tsf-role-selection-card__select-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__select-text {
+  opacity: 1;
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__action {
+  color: var(--highlight);
+}
+
+/* Hover Overlay */
+.tsf-role-selection-card__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--role-color, var(--highlight));
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.tsf-role-selection-card:hover .tsf-role-selection-card__overlay {
+  opacity: 0.02;
+}
+
+.tsf-role-selection-card--selected .tsf-role-selection-card__overlay {
+  opacity: 0.05;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tsf-role-selection-card {
+    padding: var(--spacing-sm);
+    min-height: 10rem;
+  }
+
+  .tsf-role-selection-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+  }
+
+  .tsf-role-selection-card__title {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 640px) {
+  .tsf-role-selection-card {
+    padding: var(--spacing-sm);
+    min-height: auto;
+  }
+  
+  .tsf-role-selection-card__description {
+    display: none;
+  }
+  
+  .tsf-role-selection-card__icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .tsf-role-selection-card__footer {
+    padding-top: var(--spacing-xs);
+  }
+}
+
+/* Animation for card entrance */
+.tsf-role-selection-card {
+  animation: cardSlideIn 0.4s ease-out;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for accessibility */
+.tsf-role-selection-card:focus {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.tsf-role-selection-card--loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.tsf-role-selection-card--loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: loading 1.5s infinite;
+  border-radius: inherit;
+}
