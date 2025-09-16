@@ -6,7 +6,7 @@ import { useAuth } from './contexts/useAuth';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import HomePage from './pages/Home';
+import HomePage from './pages/HomePage';
 import './App.css';
 
 // Rota protegida: só entra se estiver autenticado
