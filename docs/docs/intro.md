@@ -6,7 +6,7 @@ slug: /
 # Project Overview — The Simple Fund
 
 ####  Video: Insert here a placeholder for the **demo or pitch video**.
-#### ### **Pitch PDF:** [Click here to view the Pitch PDF](link-to-your-pitch-pdf)
+#### **Pitch PDF:** [Click here to view the Pitch PDF](link-to-your-pitch-pdf)
 
 ## Introduction
 
