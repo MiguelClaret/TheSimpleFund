@@ -41,8 +41,15 @@ export const authService = {
   },
 
   getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+
+  getCurrentUserData: async () => {
+    const response = await api.get('/auth/me');
+    // Update localStorage with fresh data
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    return response.data;
   },
 
   updateStellarKey: async (publicKey: string, secretKey?: string) => {

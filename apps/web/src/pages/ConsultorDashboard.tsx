@@ -185,6 +185,53 @@ const ConsultorDashboard: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Status do Consultor */}
+        {user?.status !== 'APPROVED' && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Status da Conta
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        user?.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      {user?.status === 'PENDING' ? 'Pendente de Aprovação' :
+                       user?.status === 'REJECTED' ? 'Reprovado' :
+                       user?.status || 'Em Análise'}
+                    </span>
+                  </div>
+                  {user?.status === 'PENDING' && (
+                    <p className="mt-2 text-sm">
+                      Sua conta de consultor está aguardando aprovação do gestor. 
+                      Enquanto isso, algumas funcionalidades podem estar limitadas.
+                    </p>
+                  )}
+                  {user?.status === 'REJECTED' && (
+                    <div className="bg-red-50 rounded-lg p-3 text-left mt-3">
+                      <p className="text-red-800 text-sm">
+                        <strong>Acesso Negado:</strong> Sua solicitação para se tornar consultor foi rejeitada. 
+                        Entre em contato com o suporte para mais informações.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">

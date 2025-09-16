@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/api';
+import AccessDeniedModal from '../components/AccessDeniedModal';
 
 interface User {
   id: string;
@@ -15,8 +16,11 @@ interface AuthContextType {
   register: (email: string, password: string, role: string) => Promise<void>;
   logout: () => void;
   updateStellarKey: (publicKey: string, secretKey?: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  showAccessDenied: boolean;
+  setShowAccessDenied: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,11 +40,16 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
 
   useEffect(() => {
     const savedUser = authService.getCurrentUser();
     if (savedUser) {
       setUser(savedUser);
+      // Check if user is rejected and show modal
+      if (savedUser.status === 'REJECTED') {
+        setShowAccessDenied(true);
+      }
     }
     setLoading(false);
   }, []);
@@ -48,16 +57,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     const { user } = await authService.login(email, password);
     setUser(user);
+    // Check if user is rejected and show modal
+    if (user.status === 'REJECTED') {
+      setShowAccessDenied(true);
+    }
   };
 
   const register = async (email: string, password: string, role: string) => {
     const { user } = await authService.register(email, password, role);
     setUser(user);
+    // Check if user is rejected and show modal
+    if (user.status === 'REJECTED') {
+      setShowAccessDenied(true);
+    }
   };
 
   const logout = () => {
     authService.logout();
     setUser(null);
+    setShowAccessDenied(false);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const { user } = await authService.getCurrentUserData();
+      setUser(user);
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
   };
 
   const updateStellarKey = async (publicKey: string, secretKey?: string) => {
@@ -71,9 +98,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateStellarKey,
+    refreshUser,
     isAuthenticated: !!user,
     loading,
+    showAccessDenied,
+    setShowAccessDenied,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <AccessDeniedModal
+        isOpen={showAccessDenied}
+        onClose={() => {
+          setShowAccessDenied(false);
+          logout(); // Faz logout do usuário rejeitado
+        }}
+        userRole={user?.role || ''}
+      />
+    </AuthContext.Provider>
+  );
 };

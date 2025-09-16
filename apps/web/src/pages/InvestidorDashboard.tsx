@@ -35,7 +35,7 @@ interface Order {
 }
 
 const InvestidorDashboard: React.FC = () => {
-  const { user, logout, updateStellarKey } = useAuth();
+  const { user, logout, updateStellarKey, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'marketplace' | 'portfolio'>('marketplace');
   const [funds, setFunds] = useState<Fund[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -199,7 +199,8 @@ const InvestidorDashboard: React.FC = () => {
               </h3>
               <div className="text-sm text-gray-600 mb-6">
                 <p className="mb-3">
-                  Sua conta de investidor está sendo analisada pela equipe de gestão.
+                  Sua conta de investidor está sendo analisada pela equipe de gestão. 
+                  Aguarde a aprovação para acessar todas as funcionalidades da plataforma.
                 </p>
                 <div className="bg-yellow-50 rounded-lg p-3 text-left">
                   <h4 className="font-medium text-yellow-800 mb-2">Status atual:</h4>
@@ -229,7 +230,14 @@ const InvestidorDashboard: React.FC = () => {
               </div>
               <div className="flex space-x-3">
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={async () => {
+                    try {
+                      await refreshUser();
+                      toast.success('Status atualizado!');
+                    } catch (error) {
+                      toast.error('Erro ao atualizar status');
+                    }
+                  }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Atualizar Status

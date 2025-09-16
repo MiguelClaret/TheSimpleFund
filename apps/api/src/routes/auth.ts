@@ -17,6 +17,11 @@ const registerSchema = z.object({
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
+  // Endpoint de teste simples
+  fastify.get('/test-simple', async () => {
+    return { message: 'Funcionou!' };
+  });
+
   // Register
   fastify.post('/register', async (request, reply) => {
     try {
@@ -34,8 +39,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Hash password
       const hashedPassword = await bcrypt.hash(body.password, 10);
 
-      // Determine initial status based on role
-      const initialStatus = body.role === 'CONSULTOR' ? 'PENDING' : 'APPROVED';
+      // All users need approval from manager (GESTOR)
+      const initialStatus = 'PENDING';
 
       // Create user
       const user = await fastify.prisma.user.create({
@@ -57,7 +62,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // Generate JWT
       const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
+        { id: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -92,17 +97,18 @@ export async function authRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
-      // Check if user is approved (for consultores)
-      if (user.role === 'CONSULTOR' && user.status !== 'APPROVED') {
+      // Check if user is approved (all users need approval except GESTOR)
+      if (user.role !== 'GESTOR' && user.status !== 'APPROVED') {
+        const roleText = user.role === 'CONSULTOR' ? 'consultant' : 'investor';
         return reply.status(403).send({ 
           error: 'Account pending approval', 
-          message: 'Your consultant account is pending approval by a manager.'
+          message: `Your ${roleText} account is pending approval by a manager.`
         });
       }
 
       // Generate JWT
       const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
+        { id: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -134,7 +140,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       }).parse(request.body);
 
       const user = await fastify.prisma.user.update({
-        where: { id: payload.userId },
+        where: { id: payload.id },
         data: { 
           publicKey,
           ...(secretKey && { secretKey })
@@ -143,6 +149,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           id: true,
           email: true,
           role: true,
+          status: true,
           publicKey: true,
           createdAt: true
         }
@@ -153,6 +160,39 @@ export async function authRoutes(fastify: FastifyInstance) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({ error: 'Invalid input', details: error.errors });
       }
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Get current user data
+  fastify.get('/me', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return reply.status(401).send({ error: 'No token provided' });
+      }
+
+      const payload = jwt.verify(token, JWT_SECRET) as any;
+      
+      const user = await fastify.prisma.user.findUnique({
+        where: { id: payload.id },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          status: true,
+          publicKey: true,
+          createdAt: true
+        }
+      });
+
+      if (!user) {
+        return reply.status(404).send({ error: 'User not found' });
+      }
+
+      return { user };
+    } catch (error) {
       fastify.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
     }
