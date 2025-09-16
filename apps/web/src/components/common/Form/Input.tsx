@@ -46,7 +46,7 @@ const Input: React.FC<InputProps> = ({
       
       <div className="tsf-input-container">
         {leftIcon && (
-          <div className="tsf-input-icon tsf-input-icon--left">
+          <div className="tsf-input-icon tsf-input-icon--left" style={{ display: 'flex', alignItems: 'center' }}>
             {leftIcon}
           </div>
         )}
@@ -54,7 +54,7 @@ const Input: React.FC<InputProps> = ({
         <input className={inputClasses} {...props} />
         
         {rightIcon && (
-          <div className="tsf-input-icon tsf-input-icon--right">
+          <div className="tsf-input-icon tsf-input-icon--right" style={{ display: 'flex', alignItems: 'center' }}>
             {rightIcon}
           </div>
         )}

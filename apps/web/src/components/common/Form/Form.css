@@ -90,6 +90,13 @@
   right: var(--spacing-sm);
 }
 
+/* Make sure icons are properly aligned vertically */
+.tsf-input-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
 /* Input Variants */
 .tsf-input--financial {
   font-family: 'JetBrains Mono', 'Monaco', 'Consolas', monospace;

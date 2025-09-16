@@ -1,0 +1,40 @@
+/* Role card animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tsf-role-selection-card {
+  animation: fadeInUp 0.5s ease-out forwards;
+  animation-delay: calc(var(--index, 0) * 0.1s);
+  opacity: 0;
+}
+
+/* Step transitions */
+.tsf-step-transition-enter {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.tsf-step-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.tsf-step-transition-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tsf-step-transition-exit-active {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 300ms, transform 300ms;
+}

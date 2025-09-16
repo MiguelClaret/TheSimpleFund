@@ -15,6 +15,12 @@
   margin-left: 2px;
 }
 
+.tsf-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .tsf-input {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
@@ -26,6 +32,35 @@
   font-family: inherit;
   transition: all 0.2s ease;
   resize: vertical;
+}
+
+.tsf-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.tsf-input-icon--left {
+  left: var(--spacing-md);
+}
+
+.tsf-input-icon--right {
+  right: var(--spacing-md);
+}
+
+.tsf-input--with-left-icon {
+  padding-left: calc(var(--spacing-md) * 2.5);
+}
+
+.tsf-input--with-right-icon {
+  padding-right: calc(var(--spacing-md) * 2.5);
+}
+
+.tsf-input-container:focus-within .tsf-input-icon {
+  color: var(--highlight);
 }
 
 .tsf-input:focus {

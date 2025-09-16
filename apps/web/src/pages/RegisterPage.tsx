@@ -6,6 +6,12 @@ import AuthLayout from '../components/layouts/AuthLayout';
 import Button from '../components/common/Button';
 import { Input } from '../components/common/Form';
 import RoleSelectionCard from '../components/RoleSelectionCard';
+import StepIndicator from '../components/StepIndicator';
+import '../styles/registration-animations.css';
+import '../styles/register-page.css';
+
+// Define the steps of the registration process
+type RegisterStep = 'role' | 'personal' | 'account' | 'review';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +22,7 @@ const RegisterPage: React.FC = () => {
     userType: 'INVESTIDOR'
   });
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'role' | 'form'>('role');
+  const [step, setStep] = useState<RegisterStep>('role');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -50,7 +56,24 @@ const RegisterPage: React.FC = () => {
 
   const handleRoleSelect = (role: string) => {
     setFormData({ ...formData, userType: role });
-    setStep('form');
+    setStep('personal');
+  };
+  
+  const getStepIndex = (currentStep: RegisterStep): number => {
+    const steps: RegisterStep[] = ['role', 'personal', 'account', 'review'];
+    return steps.indexOf(currentStep);
+  };
+  
+  const nextStep = () => {
+    if (step === 'role') setStep('personal');
+    else if (step === 'personal') setStep('account');
+    else if (step === 'account') setStep('review');
+  };
+  
+  const prevStep = () => {
+    if (step === 'review') setStep('account');
+    else if (step === 'account') setStep('personal');
+    else if (step === 'personal') setStep('role');
   };
 
   const roleOptions = [
@@ -190,192 +213,391 @@ const RegisterPage: React.FC = () => {
     </div>
   );
 
-  if (step === 'role') {
-    return (
-      <AuthLayout
-        title="Choose Your Role"
-        subtitle="Select how you want to participate in the TSF ecosystem"
-        illustration={registerIllustration}
-      >
-        <div className="tsf-form-group">
-          <div style={{ 
-            display: 'grid', 
-            gap: 'var(--spacing-lg)',
-            gridTemplateColumns: '1fr'
-          }}>
-            {roleOptions.map((option) => (
-              <RoleSelectionCard
-                key={option.role}
-                role={option.role}
-                icon={option.icon}
-                title={option.title}
-                description={option.description}
-                features={option.features}
-                isSelected={formData.userType === option.role.toUpperCase()}
-                onClick={() => handleRoleSelect(option.role.toUpperCase())}
-              />
-            ))}
+  // Step labels for indicator
+  const stepLabels = ['Choose Role', 'Personal Info', 'Account Setup', 'Review'];
+  
+  // Step titles and subtitles
+  const stepContent = {
+    role: {
+      title: 'Choose Your Role',
+      subtitle: 'Select how you want to participate in the TSF ecosystem'
+    },
+    personal: {
+      title: 'Personal Information',
+      subtitle: 'Tell us a bit about yourself'
+    },
+    account: {
+      title: 'Account Setup',
+      subtitle: 'Create your secure account credentials'
+    },
+    review: {
+      title: 'Review Information',
+      subtitle: 'Verify your information before completing registration'
+    }
+  };
+  
+  // Format the selected role name for display
+  const getFormattedRole = () => {
+    const role = formData.userType.toLowerCase();
+    switch (role) {
+      case 'investor':
+        return 'Investor';
+      case 'gestorfundo':
+        return 'Fund Manager';
+      case 'consultor':
+        return 'Consultant';
+      default:
+        return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+    }
+  };
+  
+  // Render different form content based on current step
+  const renderStepContent = () => {
+    switch(step) {
+      case 'role':
+        return (
+          <div className="tsf-form-group register-layout-wide" style={{ marginBottom: 'var(--spacing-md)' }}>
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--spacing-lg)',
+              alignItems: 'center',
+              width: '100%'
+            }}>
+              <p style={{
+                textAlign: 'center',
+                maxWidth: '480px',
+                margin: '0 auto var(--spacing-md)',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--font-size-sm)'
+              }}>
+                Select your role in the platform
+              </p>
+            
+              <div className="register-role-grid">
+                {roleOptions.map((option, index) => (
+                  <RoleSelectionCard
+                    key={option.role}
+                    role={option.role}
+                    icon={option.icon}
+                    title={option.title}
+                    description={option.description}
+                    features={[]}
+                    isSelected={formData.userType === option.role.toUpperCase()}
+                    onClick={() => handleRoleSelect(option.role.toUpperCase())}
+                    className={`role-card-${index}`}
+                    style={{ '--index': index } as React.CSSProperties}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <p style={{ 
-            color: 'var(--text-secondary)', 
-            fontSize: 'var(--font-size-sm)',
-            margin: 0
-          }}>
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              style={{
-                color: 'var(--highlight)',
-                textDecoration: 'none',
-                fontWeight: 'var(--font-weight-medium)'
-              }}
-            >
-              Sign In
-            </Link>
-          </p>
-        </div>
-      </AuthLayout>
-    );
-  }
-
-  return (
-    <AuthLayout
-      title="Create Account"
-      subtitle={`Complete your ${formData.userType.toLowerCase()} registration`}
-      illustration={registerIllustration}
-    >
-      <form className="tsf-form-group" onSubmit={handleSubmit}>
-        <Input
-          id="name"
-          name="name"
-          type="text"
-          label="Full Name"
-          placeholder="Enter your full name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          leftIcon={
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
+        );
+        
+      case 'personal':
+        return (
+          <div className="tsf-form-group">
+            <div className="tsf-auth-selected-role" style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
+              background: 'rgba(240, 185, 11, 0.1)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: 'var(--highlight)',
+                marginRight: 'var(--spacing-sm)'
+              }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M2 6L5 9L10 3"
+                    stroke="black"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <span style={{ fontSize: 'var(--font-size-sm)' }}>
+                Selected role: <strong>{getFormattedRole()}</strong>
+              </span>
+            </div>
+            
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              leftIcon={
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M0 16V14C0 11.7909 1.79086 10 4 10H12C14.2091 10 16 11.7909 16 14V16"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              }
+            />
+            
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              label="Email Address"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              leftIcon={
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M2 4L8 8L14 4M2 4V12C2 12.5523 2.44772 13 3 13H13C13.5523 13 14 12.5523 14 12V4M2 4C2 3.44772 2.44772 3 3 3H13C13.5523 3 14 3.44772 14 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              }
+            />
+          </div>
+        );
+        
+      case 'account':
+        return (
+          <div className="tsf-form-group">
+            <div className="tsf-password-row" style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+              gap: 'var(--spacing-md)', 
+              marginBottom: 'var(--spacing-sm)' 
+            }}>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                label="Password"
+                placeholder="Create password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                leftIcon={
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 7V5C4 3.89543 4.89543 3 6 3H10C11.1046 3 12 3.89543 12 5V7M3 7H13C13.5523 7 14 7.44772 14 8V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                }
               />
-              <path
-                d="M0 16V14C0 11.7909 1.79086 10 4 10H12C14.2091 10 16 11.7909 16 14V16"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-            </svg>
-          }
-        />
 
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          label="Email Address"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          leftIcon={
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M2 4L8 8L14 4M2 4V12C2 12.5523 2.44772 13 3 13H13C13.5523 13 14 12.5523 14 12V4M2 4C2 3.44772 2.44772 3 3 3H13C13.5523 3 14 3.44772 14 4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                label="Confirm Password"
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                leftIcon={
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 7V5C4 3.89543 4.89543 3 6 3H10C11.1046 3 12 3.89543 12 5V7M3 7H13C13.5523 7 14 7.44772 14 8V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                }
               />
-            </svg>
-          }
-        />
-
-        <div className="tsf-form-row">
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            label="Password"
-            placeholder="Create password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            leftIcon={
+            </div>
+            
+            <div style={{ 
+              marginTop: 'var(--spacing-md)',
+              padding: 'var(--spacing-sm)',
+              background: 'var(--background-secondary)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--text-secondary)'
+            }}>
+              <p style={{ marginBottom: 'var(--spacing-xs)', fontWeight: 'var(--font-weight-medium)' }}>
+                Password requirements:
+              </p>
+              <ul style={{ paddingLeft: 'var(--spacing-md)', margin: 0 }}>
+                <li>At least 8 characters</li>
+                <li>Include at least one uppercase letter</li>
+                <li>Include at least one number</li>
+                <li>Include at least one special character</li>
+              </ul>
+            </div>
+          </div>
+        );
+        
+      case 'review':
+        return (
+          <div className="tsf-form-group">
+            <div style={{ 
+              padding: 'var(--spacing-md)',
+              background: 'var(--background-tertiary)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              <h4 style={{ 
+                margin: '0 0 var(--spacing-sm)',
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 'var(--font-weight-semibold)',
+                color: 'var(--text-primary)'
+              }}>
+                Review Your Information
+              </h4>
+              
+              <div style={{ display: 'grid', gap: 'var(--spacing-xs)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Role:</span>
+                  <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{getFormattedRole()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Name:</span>
+                  <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{formData.name || '(Not provided)'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Email:</span>
+                  <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{formData.email}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Password:</span>
+                  <span style={{ fontWeight: 'var(--font-weight-medium)' }}>••••••••</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{
+              padding: 'var(--spacing-sm)',
+              background: 'rgba(240, 185, 11, 0.1)',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              marginBottom: 'var(--spacing-md)'
+            }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path
-                  d="M4 7V5C4 3.89543 4.89543 3 6 3H10C11.1046 3 12 3.89543 12 5V7M3 7H13C13.5523 7 14 7.44772 14 8V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7Z"
-                  stroke="currentColor"
+                  d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z"
+                  stroke="var(--highlight)"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-              </svg>
-            }
-          />
-
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            label="Confirm Password"
-            placeholder="Confirm password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            leftIcon={
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path
-                  d="M4 7V5C4 3.89543 4.89543 3 6 3H10C11.1046 3 12 3.89543 12 5V7M3 7H13C13.5523 7 14 7.44772 14 8V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7Z"
-                  stroke="currentColor"
+                  d="M8 5V8"
+                  stroke="var(--highlight)"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
+                <circle cx="8" cy="11" r="0.5" fill="var(--highlight)" />
               </svg>
-            }
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-primary)' }}>
+                Please verify your information before completing registration
+              </span>
+            </div>
+          </div>
+        );
+        
+      default:
+        return null;
+    }
+  };
+  
+  // Render navigation buttons based on current step
+  const renderNavButtons = () => {
+    const isLastStep = step === 'review';
+    const isFirstStep = step === 'role';
+    
+    return (
+      <div style={{ 
+        display: 'flex', 
+        gap: 'var(--spacing-md)', 
+        marginTop: 'var(--spacing-md)'
+      }}>
+        {!isFirstStep && (
           <Button
             type="button"
             variant="ghost"
-            onClick={() => setStep('role')}
+            onClick={prevStep}
             className="w-full"
           >
             Back
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            loading={loading}
-            className="w-full"
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </Button>
-        </div>
+        )}
+        
+        <Button
+          type={isLastStep ? "submit" : "button"}
+          variant="primary"
+          size="lg"
+          loading={loading && isLastStep}
+          onClick={!isLastStep ? nextStep : undefined}
+          className="w-full"
+        >
+          {isLastStep 
+            ? (loading ? 'Creating Account...' : 'Complete Registration')
+            : 'Continue'
+          }
+        </Button>
+      </div>
+    );
+  };
+
+  return (
+    <AuthLayout
+      title={stepContent[step].title}
+      subtitle={stepContent[step].subtitle}
+      illustration={step !== 'role' ? registerIllustration : null}
+    >
+      {step !== 'role' && (
+        <StepIndicator
+          steps={stepLabels}
+          currentStep={getStepIndex(step)}
+          className="mb-6"
+        />
+      )}
+      
+      <form 
+        className="tsf-form-group" 
+        onSubmit={step === 'review' ? handleSubmit : (e) => e.preventDefault()}
+        style={{ marginBottom: 'var(--spacing-md)' }}
+      >
+        {renderStepContent()}
+        {renderNavButtons()}
       </form>
 
-      <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-        <p style={{ 
-          color: 'var(--text-secondary)', 
-          fontSize: 'var(--font-size-sm)',
-          margin: 0
-        }}>
+      <div className="tsf-auth-link-container">
+        <p className="tsf-auth-text">
           Already have an account?{' '}
           <Link
             to="/login"
-            style={{
-              color: 'var(--highlight)',
-              textDecoration: 'none',
-              fontWeight: 'var(--font-weight-medium)'
-            }}
+            className="tsf-auth-link"
           >
             Sign In
           </Link>

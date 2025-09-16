@@ -1,0 +1,25 @@
+.register-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .register-role-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .register-role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.register-layout-wide {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}

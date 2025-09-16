@@ -122,12 +122,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                       </defs>
                     </svg>
                   </div>
-                  <h2 className="tsf-auth-illustration__title">
-                    Tokenize Your Future
-                  </h2>
-                  <p className="tsf-auth-illustration__description">
-                    Join the revolution in decentralized finance with blockchain-powered fund tokenization on the Stellar network.
-                  </p>
+                 
                 </div>
               </div>
             )}
