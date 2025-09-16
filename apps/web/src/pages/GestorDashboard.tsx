@@ -5,6 +5,8 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
+import axios from 'axios';
+import IssueQuotasModal from '../components/IssueQuotasModal';
 
 interface Cedente {
   id: number;
@@ -64,6 +66,8 @@ const GestorDashboard: React.FC = () => {
   const [cedentes, setCedentes] = useState<Cedente[]>([]);
   const [sacados, setSacados] = useState<Sacado[]>([]);
   const [loading, setLoading] = useState(false);
+  const [issueFundModalOpen, setIssueFundModalOpen] = useState(false);
+  const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
 
   const loadConsultores = useCallback(async () => {
     setLoading(true);
@@ -188,6 +192,21 @@ const GestorDashboard: React.FC = () => {
       loadFunds();
     } catch {
       toast.error('Erro ao desativar fundo');
+    }
+  };
+
+  const handleIssueQuotas = async (id: string, amount: number) => {
+    try {
+      await fundService.issueQuotas(id, amount);
+      toast.success(`${amount} quotas issued successfully!`);
+      loadFunds();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+        const errorMessage = String(error.response.data.error);
+        toast.error(`Error: ${errorMessage}`);
+      } else {
+        toast.error('Error issuing quotas');
+      }
     }
   };
 
@@ -607,6 +626,14 @@ const GestorDashboard: React.FC = () => {
                           <span className="tsf-detail-label">Oferta Máxima:</span>
                           <span className="tsf-detail-value">{fund.maxSupply.toLocaleString('pt-BR')} cotas</span>
                         </div>
+                        <div className="tsf-fund-detail">
+                          <span className="tsf-detail-label">Cotas Emitidas:</span>
+                          <span className="tsf-detail-value">{fund.totalIssued.toLocaleString('pt-BR')} cotas</span>
+                        </div>
+                        <div className="tsf-fund-detail">
+                          <span className="tsf-detail-label">Cotas Disponíveis para Emissão:</span>
+                          <span className="tsf-detail-value">{(fund.maxSupply - fund.totalIssued).toLocaleString('pt-BR')} cotas</span>
+                        </div>
                       </div>
                       
                       {fund.consultor && (
@@ -640,13 +667,25 @@ const GestorDashboard: React.FC = () => {
                         </>
                       )}
                       {(fund.status === 'APPROVED' || fund.status === 'ACTIVE') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeactivateFund(fund.id)}
-                        >
-                          Desativar
-                        </Button>
+                        <>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedFund(fund);
+                              setIssueFundModalOpen(true);
+                            }}
+                          >
+                            Issue Quotas
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeactivateFund(fund.id)}
+                          >
+                            Desativar
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -776,6 +815,17 @@ const GestorDashboard: React.FC = () => {
           </CSSTransition>
         </SwitchTransition>
       </div>
+
+      {/* Issue Quotas Modal */}
+      {selectedFund && (
+        <IssueQuotasModal
+          isOpen={issueFundModalOpen}
+          onClose={() => setIssueFundModalOpen(false)}
+          fundName={selectedFund.name}
+          maxQuotasAvailable={selectedFund.maxSupply - selectedFund.totalIssued}
+          onConfirm={(amount) => handleIssueQuotas(selectedFund.id, amount)}
+        />
+      )}
     </DashboardLayout>
   );
 };
