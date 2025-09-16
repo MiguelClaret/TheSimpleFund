@@ -4,10 +4,11 @@ sidebar_position: 1
 slug: /
 ---
 # Project Overview — The Simple Fund
-<iframe width="700" height="340" src="https://www.youtube.com/embed/khbtYsOoS_E?si=osDUtth3-N_AllEe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen ></iframe>
+
+<iframe width="700" height="340" src="https://drive.google.com/file/d/1f96kb6KkLN-z9O3kdbUULvy0VoJmqPLw/preview" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen ></iframe>
 The Simple Fund Project Presentation Video.
 
-#### **Pitch PDF:** [Click here to view the Pitch PDF](#)
+#### **Pitch PDF:** [Click here to view the Pitch PDF](https://drive.google.com/file/d/1GWpCydCrzvOXTZfb0wMn47VrCidGS9fR/view?usp=sharing)
 
 ## Introduction
 
