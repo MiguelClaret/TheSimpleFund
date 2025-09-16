@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import ConsultorDashboard from './ConsultorDashboard';
 import GestorDashboard from './GestorDashboard';
 import InvestidorDashboard from './InvestidorDashboard';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import api, { authService } from "../services/api";
+import api from "../services/api";
+import { useAuth } from "../contexts/useAuth";
 import FundManagement from "../components/FundManagement";
 
 interface Fund {
@@ -19,7 +19,7 @@ interface Fund {
 }
 
 const ConsultorDashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -98,17 +98,10 @@ const ConsultorDashboard: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleLogout = () => {
-    authService.logout();
-    navigate("/login");
   };
 
   if (selectedFund) {
@@ -129,7 +122,7 @@ const ConsultorDashboard: React.FC = () => {
             Dashboard - Consultor
           </h1>
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium"
           >
             Sair

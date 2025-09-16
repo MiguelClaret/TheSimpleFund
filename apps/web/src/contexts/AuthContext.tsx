@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/api';
 import AccessDeniedModal from '../components/AccessDeniedModal';
 
@@ -25,13 +25,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Export AuthContext for use in useAuth hook
+export { AuthContext };
 
 interface AuthProviderProps {
   children: ReactNode;
