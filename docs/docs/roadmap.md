@@ -79,6 +79,23 @@ sidebar_position: 10
 * **Instant and transparent payments** with **XLM**, increasing **global liquidity** and enabling real-time trading.
 * **Sustainable scalability**, with the platform able to **manage billions in transactions** with low cost and high performance.
 
+### **Objectives**
+
+* **End-to-end evidence for each agent/action** (who did what, when), binding off-chain documents to on-chain commitments (hash + event).
+
+* **Tamper-evident approvals:** entity/fund approvals depend on the presence of required documents and their on-chain commitments.
+
+* **Privacy by design:** store files off-chain (encrypted); keep only hashes + minimal metadata on-chain.
+
+
+### **Key Milestones**
+
+* **MVP:** upload → encrypt & store → compute SHA-256 → emit doc_commit event on-chain → reviewer approves/denies.
+
+* **Policy engine:** per-action document requirements (e.g., KYC/KYB, mandate, contracts) with versioning & expiry alerts.
+
+* **Exports & retention:** one-click evidence package (docs + JSON log) and lifecycle rules (retention/WORM buckets).
+
 ## **Conclusion**
 
 This roadmap offers a **clear plan** for the development of **The Simple Fund**, from the **MVP launch** to its **global expansion**, with a focus on **adapting to global financial regulations** and implementing **on-chain debtor payments** via **Lumens (XLM)**. Each stage of the project aims to improve **security**, **transparency**, and **liquidity**, creating an efficient and scalable platform that has the potential to **transform the receivables fund market** globally.
