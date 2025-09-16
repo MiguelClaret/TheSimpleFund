@@ -1,0 +1,103 @@
+/* Auth Form Styles */
+
+/* Auth form group */
+.tsf-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Auth input wrapper - additional styling for auth screens */
+.tsf-auth-layout .tsf-input-wrapper {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Auth inputs - ensure visibility in dark mode */
+.tsf-auth-layout .tsf-input {
+  background-color: var(--background-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  height: 48px;
+}
+
+/* Auth input focus state */
+.tsf-auth-layout .tsf-input:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.15);
+}
+
+/* Auth input placeholder */
+.tsf-auth-layout .tsf-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Auth input with icons */
+.tsf-auth-layout .tsf-input-icon {
+  color: var(--text-secondary);
+}
+
+/* Auth form labels */
+.tsf-auth-layout .tsf-input-label {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Demo access separator */
+.tsf-auth-separator {
+  position: relative;
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-md) 0;
+}
+
+.tsf-auth-separator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.tsf-auth-separator-text {
+  background: var(--background-card);
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  position: relative;
+}
+
+/* Form row for buttons */
+.tsf-form-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Auth buttons */
+.tsf-auth-layout .tsf-button {
+  width: 100%;
+}
+
+/* Register link */
+.tsf-auth-link-container {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+}
+
+.tsf-auth-text {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.tsf-auth-link {
+  color: var(--highlight);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.tsf-auth-link:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,61 @@
+/* Modal form specific styles */
+.tsf-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.tsf-form-grid .tsf-input-wrapper {
+  margin-bottom: var(--spacing-md);
+}
+
+.tsf-form-full-width {
+  grid-column: span 2;
+}
+
+/* Better form inputs in dark mode */
+.tsf-form-grid .tsf-input {
+  background-color: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.tsf-form-grid .tsf-input:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.2);
+}
+
+.tsf-form-grid .tsf-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Ensure modal content can scroll properly */
+.tsf-modal__content {
+  max-height: calc(80vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: var(--spacing-md);
+}
+
+/* Make form elements more visible in dark theme */
+.tsf-input-label {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.tsf-input-helper {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .tsf-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tsf-form-grid .tsf-form-full-width {
+    grid-column: span 1;
+  }
+}

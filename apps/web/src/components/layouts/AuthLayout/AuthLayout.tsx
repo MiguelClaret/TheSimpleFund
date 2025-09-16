@@ -140,11 +140,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <p className="tsf-auth-footer__text">
           © 2025 The Simple Fund. All rights reserved.
         </p>
-        <div className="tsf-auth-footer__links">
-          <a href="/privacy" className="tsf-auth-footer__link">Privacy</a>
-          <a href="/terms" className="tsf-auth-footer__link">Terms</a>
-          <a href="/support" className="tsf-auth-footer__link">Support</a>
-        </div>
       </div>
     </div>
   );
