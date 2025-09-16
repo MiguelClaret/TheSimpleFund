@@ -62,11 +62,11 @@
 
 /* Input with Icons */
 .tsf-input--with-left-icon {
-  padding-left: 2.75rem;
+  padding-left: 2.5rem;
 }
 
 .tsf-input--with-right-icon {
-  padding-right: 2.75rem;
+  padding-right: 2.5rem;
 }
 
 .tsf-input-icon {
@@ -79,6 +79,7 @@
   justify-content: center;
   pointer-events: none;
   z-index: 1;
+  line-height: 0;
 }
 
 .tsf-input-icon--left {
