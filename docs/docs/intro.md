@@ -6,6 +6,7 @@ slug: /
 # Project Overview — The Simple Fund
 
 ####  Video: Insert here a placeholder for the **demo or pitch video**.
+#### ### **Pitch PDF:** [Click here to view the Pitch PDF](link-to-your-pitch-pdf)
 
 ## Introduction
 
@@ -40,9 +41,8 @@ These bottlenecks make the traditional system expensive, slow, and unattractive 
 
 1. **Tokenization** — Managers convert fund shares into fungible Stellar tokens.
 2. **On-Chain Registry** — Consultants register assignors and debtors with full transparency.
-3. **Automatic BRL→USDC Conversion** — Real-time settlement powered by Stellar’s Reflector protocol.
-4. **Automated Distribution** — Smart contracts handle proportional returns seamlessly.
-5. **Global Liquidity** — Shares become tradable instantly on the Stellar DEX.
+3. **Automated Distribution** — Smart contracts handle proportional returns seamlessly.
+4. **Global Liquidity** — Shares become tradable instantly on the Stellar DEX.
 
 The result: fast, auditable, and scalable operations delivered through a **B2B SaaS model** for fund managers.
 
