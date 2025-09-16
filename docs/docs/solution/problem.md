@@ -73,3 +73,15 @@ Users need to:
 ## Conclusion
 
 By connecting the problems and needs of managers, consultants, and investors with the capabilities of Stellar blockchain, **The Simple Fund** positions itself as a solution that transforms receivables funds into **transparent, liquid, and global** instruments.  
+
+
+## **Bibliography**
+
+* **DataIntelo**. (2023). *Receivables Financing Market: Growth, Trends, and Forecast (2023-2032)*. DataIntelo.
+* **Trade Treasury Payments**. (2025). *Global Factoring Market Growth Analysis*. Trade Treasury Payments.
+* **Mordor Intelligence**. (2025). *Blockchain Market in Financial Services: Forecast to 2030*. Mordor Intelligence.
+* **Stellar Development Foundation**. (2025). *Stellar Network: A Global Payment Infrastructure*. Stellar Development Foundation.
+* **HighGear**. (2025). *Cost of Manual Compliance Failures in Financial Markets*. HighGear Technologies.
+* **Bottomline**. (2025). *Processing Manual Invoices and Operational Costs in Financial Funds*. Bottomline Technologies.
+* **Institutional Investor**. (2024). *The Need for Transparency in Private Equity Investments*. Institutional Investor.
+
