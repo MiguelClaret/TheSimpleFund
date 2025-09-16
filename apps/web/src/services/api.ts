@@ -91,6 +91,11 @@ export const cedenteService = {
     return response.data.cedentes || [];
   },
 
+  listByFund: async (fundId: string) => {
+    const response = await api.get(`/cedentes/fund/${fundId}`);
+    return response.data.cedentes || [];
+  },
+
   updateStatus: async (id: string, status: string) => {
     const response = await api.patch(`/cedentes/${id}/status`, { status });
     return response.data;
@@ -106,6 +111,11 @@ export const sacadoService = {
 
   list: async () => {
     const response = await api.get('/sacados');
+    return response.data.sacados || [];
+  },
+
+  listByFund: async (fundId: string) => {
+    const response = await api.get(`/sacados/fund/${fundId}`);
     return response.data.sacados || [];
   },
 

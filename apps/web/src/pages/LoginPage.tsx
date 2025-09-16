@@ -27,9 +27,9 @@ const LoginPage: React.FC = () => {
 
   const quickLogin = async (userType: string) => {
     const credentials = {
-      consultor: { email: 'consultor@vero.com.br', password: '123456' },
-      gestor: { email: 'gestor@vero.com.br', password: '123456' },
-      investidor: { email: 'investidor@vero.com.br', password: '123456' }
+      consultor: { email: 'consultor@vero.com', password: '123456' },
+      gestor: { email: 'gestor@vero.com', password: '123456' },
+      investidor: { email: 'investidor@vero.com', password: '123456' }
     };
 
     const cred = credentials[userType as keyof typeof credentials];

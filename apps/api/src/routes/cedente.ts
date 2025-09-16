@@ -8,7 +8,8 @@ const createCedenteSchema = z.object({
   name: z.string().min(1),
   document: z.string().min(11),
   address: z.string().optional(),
-  publicKey: z.string().optional()
+  publicKey: z.string().optional(),
+  fundId: z.string()
 });
 
 const updateStatusSchema = z.object({
@@ -24,7 +25,7 @@ function verifyToken(token: string) {
 }
 
 export async function cedenteRoutes(fastify: FastifyInstance) {
-  // Create cedente (Consultor only)
+  // Create cedente (Consultor only) - now requires fundId
   fastify.post('/', async (request, reply) => {
     try {
       const token = request.headers.authorization?.replace('Bearer ', '');
@@ -39,15 +40,26 @@ export async function cedenteRoutes(fastify: FastifyInstance) {
 
       const body = createCedenteSchema.parse(request.body);
 
+      // Verify fund belongs to consultor
+      const fund = await fastify.prisma.fund.findFirst({
+        where: {
+          id: body.fundId,
+          consultorId: payload.id
+        }
+      });
+
+      if (!fund) {
+        return reply.status(404).send({ error: 'Fund not found or you do not have permission' });
+      }
+
       const cedente = await fastify.prisma.cedente.create({
         data: {
-          ...body,
-          consultorId: payload.userId
-        },
-        include: {
-          consultor: {
-            select: { email: true, role: true }
-          }
+          name: body.name,
+          document: body.document,
+          address: body.address,
+          publicKey: body.publicKey,
+          consultorId: payload.id,
+          fundId: body.fundId
         }
       });
 
@@ -61,7 +73,55 @@ export async function cedenteRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // List cedentes (Gestor sees all, Consultor sees own)
+  // Get cedentes by fund
+  fastify.get('/fund/:fundId', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return reply.status(401).send({ error: 'No token provided' });
+      }
+
+      const payload = verifyToken(token);
+      const { fundId } = request.params as { fundId: string };
+
+      // Verify fund belongs to consultor (if consultor role)
+      if (payload.role === 'CONSULTOR') {
+        const fund = await fastify.prisma.fund.findFirst({
+          where: {
+            id: fundId,
+            consultorId: payload.id
+          }
+        });
+
+        if (!fund) {
+          return reply.status(404).send({ error: 'Fund not found or you do not have permission' });
+        }
+      }
+
+      const cedentes = await fastify.prisma.cedente.findMany({
+        where: { 
+          fundId,
+          ...(payload.role === 'CONSULTOR' && { consultorId: payload.id })
+        },
+        include: {
+          consultor: {
+            select: { email: true, role: true }
+          },
+          fund: {
+            select: { name: true, id: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return { cedentes };
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // List all cedentes (Gestor sees all, Consultor sees own) - now includes fund info
   fastify.get('/', async (request, reply) => {
     try {
       const token = request.headers.authorization?.replace('Bearer ', '');
@@ -72,7 +132,7 @@ export async function cedenteRoutes(fastify: FastifyInstance) {
       const payload = verifyToken(token);
 
       const where = payload.role === 'CONSULTOR' 
-        ? { consultorId: payload.userId }
+        ? { consultorId: payload.id }
         : {};
 
       const cedentes = await fastify.prisma.cedente.findMany({
@@ -80,6 +140,9 @@ export async function cedenteRoutes(fastify: FastifyInstance) {
         include: {
           consultor: {
             select: { email: true, role: true }
+          },
+          fund: {
+            select: { name: true, id: true }
           }
         },
         orderBy: { createdAt: 'desc' }
@@ -114,6 +177,9 @@ export async function cedenteRoutes(fastify: FastifyInstance) {
         include: {
           consultor: {
             select: { email: true, role: true }
+          },
+          fund: {
+            select: { name: true, id: true }
           }
         }
       });

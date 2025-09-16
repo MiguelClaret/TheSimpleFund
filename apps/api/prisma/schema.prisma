@@ -40,6 +40,8 @@ model Cedente {
   // Relations
   consultorId String @map("consultor_id")
   consultor   User   @relation(fields: [consultorId], references: [id])
+  fundId      String @map("fund_id")
+  fund        Fund   @relation(fields: [fundId], references: [id])
 
   @@map("cedentes")
 }
@@ -57,6 +59,8 @@ model Sacado {
   // Relations
   consultorId String       @map("consultor_id")
   consultor   User         @relation(fields: [consultorId], references: [id])
+  fundId      String       @map("fund_id")
+  fund        Fund         @relation(fields: [fundId], references: [id])
   receivables Receivable[]
 
   @@map("sacados")
@@ -84,6 +88,8 @@ model Fund {
   consultor   User?   @relation("ConsultorFunds", fields: [consultorId], references: [id])
   receivables Receivable[]
   orders      Order[]
+  cedentes    Cedente[]
+  sacados     Sacado[]
 
   @@map("funds")
 }
