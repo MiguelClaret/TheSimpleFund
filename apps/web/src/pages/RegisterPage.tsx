@@ -105,10 +105,14 @@ const RegisterPage: React.FC = () => {
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
                   <option value="INVESTIDOR">Investidor</option>
-                  <option value="CONSULTOR">Consultor</option>
-                  <option value="GESTOR">Gestor</option>
+                  <option value="CONSULTOR">Consultor (Requer aprovação)</option>
                 </select>
               </div>
+              {formData.userType === 'CONSULTOR' && (
+                <p className="mt-2 text-sm text-amber-600">
+                  ⚠️ Consultores precisam ser aprovados por um gestor antes de poder operar.
+                </p>
+              )}
             </div>
 
             <div>

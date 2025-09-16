@@ -7,6 +7,9 @@ const createFundSchema = z.object({
     maxSupply: z.number().positive(),
     price: z.number().positive().optional()
 });
+const approvalSchema = z.object({
+    status: z.enum(['APPROVED', 'REJECTED'])
+});
 function verifyToken(token) {
     try {
         return jwt.verify(token, JWT_SECRET);
@@ -16,7 +19,7 @@ function verifyToken(token) {
     }
 }
 export async function fundRoutes(fastify) {
-    // Create fund (Gestor only)
+    // Create fund (Consultor only)
     fastify.post('/', async (request, reply) => {
         try {
             const token = request.headers.authorization?.replace('Bearer ', '');
@@ -24,8 +27,8 @@ export async function fundRoutes(fastify) {
                 return reply.status(401).send({ error: 'No token provided' });
             }
             const payload = verifyToken(token);
-            if (payload.role !== 'GESTOR') {
-                return reply.status(403).send({ error: 'Only gestors can create funds' });
+            if (payload.role !== 'CONSULTOR') {
+                return reply.status(403).send({ error: 'Only consultors can create funds' });
             }
             const body = createFundSchema.parse(request.body);
             // Check if symbol already exists
@@ -53,6 +56,11 @@ export async function fundRoutes(fastify) {
         try {
             const funds = await fastify.prisma.fund.findMany({
                 include: {
+                    consultor: {
+                        select: {
+                            email: true
+                        }
+                    },
                     receivables: {
                         select: {
                             id: true,
@@ -179,6 +187,46 @@ export async function fundRoutes(fastify) {
             const updatedFund = await fastify.prisma.fund.update({
                 where: { id },
                 data: { totalIssued: fund.totalIssued + amount }
+            });
+            return { fund: updatedFund };
+        }
+        catch (error) {
+            if (error instanceof z.ZodError) {
+                return reply.status(400).send({ error: 'Invalid input', details: error.errors });
+            }
+            fastify.log.error(error);
+            return reply.status(500).send({ error: 'Internal server error' });
+        }
+    });
+    // Approve/reject fund (Gestor only)
+    fastify.patch('/:id/approval', async (request, reply) => {
+        try {
+            const token = request.headers.authorization?.replace('Bearer ', '');
+            if (!token) {
+                return reply.status(401).send({ error: 'No token provided' });
+            }
+            const user = verifyToken(token);
+            const params = request.params;
+            if (user.role !== 'GESTOR') {
+                return reply.status(403).send({ error: 'Access denied' });
+            }
+            const body = approvalSchema.parse(request.body);
+            const fund = await fastify.prisma.fund.findUnique({
+                where: { id: params.id }
+            });
+            if (!fund) {
+                return reply.status(404).send({ error: 'Fund not found' });
+            }
+            const updatedFund = await fastify.prisma.fund.update({
+                where: { id: params.id },
+                data: { status: body.status },
+                include: {
+                    consultor: {
+                        select: {
+                            email: true
+                        }
+                    }
+                }
             });
             return { fund: updatedFund };
         }

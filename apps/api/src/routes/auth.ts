@@ -13,7 +13,7 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(['CONSULTOR', 'GESTOR', 'INVESTIDOR'])
+  role: z.enum(['CONSULTOR', 'INVESTIDOR']) // Removed GESTOR - can only be created by backoffice
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
@@ -34,17 +34,22 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Hash password
       const hashedPassword = await bcrypt.hash(body.password, 10);
 
+      // Determine initial status based on role
+      const initialStatus = body.role === 'CONSULTOR' ? 'PENDING' : 'APPROVED';
+
       // Create user
       const user = await fastify.prisma.user.create({
         data: {
           email: body.email,
           password: hashedPassword,
-          role: body.role
+          role: body.role,
+          status: initialStatus
         },
         select: {
           id: true,
           email: true,
           role: true,
+          status: true,
           publicKey: true,
           createdAt: true
         }
@@ -85,6 +90,14 @@ export async function authRoutes(fastify: FastifyInstance) {
       const isValid = await bcrypt.compare(body.password, user.password);
       if (!isValid) {
         return reply.status(401).send({ error: 'Invalid credentials' });
+      }
+
+      // Check if user is approved (for consultores)
+      if (user.role === 'CONSULTOR' && user.status !== 'APPROVED') {
+        return reply.status(403).send({ 
+          error: 'Account pending approval', 
+          message: 'Your consultant account is pending approval by a manager.'
+        });
       }
 
       // Generate JWT

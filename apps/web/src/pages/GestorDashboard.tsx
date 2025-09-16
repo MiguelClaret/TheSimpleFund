@@ -1,24 +1,30 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { cedenteService, sacadoService, fundService, stellarService } from '../services/api';
+import { cedenteService, sacadoService, fundService } from '../services/api';
 import toast from 'react-hot-toast';
 
 interface Cedente {
   id: number;
   name: string;
-  email: string;
-  cnpj: string;
+  document?: string;
+  cnpj?: string;
   status: string;
   createdAt: string;
+  consultor?: {
+    email: string;
+  };
 }
 
 interface Sacado {
   id: number;
   name: string;
-  email: string;
-  cnpj: string;
+  document?: string;
+  cnpj?: string;
   status: string;
   createdAt: string;
+  consultor?: {
+    email: string;
+  };
 }
 
 interface Fund {
@@ -33,36 +39,40 @@ interface Fund {
   price: number;
   createdAt: string;
   updatedAt: string;
+  consultor?: {
+    email: string;
+  };
+}
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
 }
 
 const GestorDashboard: React.FC = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'approval' | 'funds' | 'receivables'>('approval');
-  const [pendingItems, setPendingItems] = useState<(Cedente | Sacado)[]>([]);
+  const [activeTab, setActiveTab] = useState<'consultores' | 'fundos' | 'cedentes' | 'sacados'>('consultores');
+  const [consultores, setConsultores] = useState<User[]>([]);
   const [funds, setFunds] = useState<Fund[]>([]);
+  const [cedentes, setCedentes] = useState<Cedente[]>([]);
+  const [sacados, setSacados] = useState<Sacado[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showFundForm, setShowFundForm] = useState(false);
-  const [fundFormData, setFundFormData] = useState({
-    name: '',
-    description: '',
-    symbol: '',
-    maxSupply: '10000'
-  });
 
-  const loadPendingApprovals = useCallback(async () => {
+  const loadConsultores = useCallback(async () => {
     setLoading(true);
     try {
-      const [cedentesResponse, sacadosResponse] = await Promise.all([
-        cedenteService.list(),
-        sacadoService.list()
-      ]);
-      
-      const pendingCedentes = cedentesResponse.filter((c: Cedente) => c.status === 'pending');
-      const pendingSacados = sacadosResponse.filter((s: Sacado) => s.status === 'pending');
-      
-      setPendingItems([...pendingCedentes, ...pendingSacados]);
+      const response = await fetch('/api/users/consultores', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const data = await response.json();
+      setConsultores(data.consultores || []);
     } catch {
-      toast.error('Erro ao carregar aprovações pendentes');
+      toast.error('Erro ao carregar consultores');
     } finally {
       setLoading(false);
     }
@@ -80,85 +90,109 @@ const GestorDashboard: React.FC = () => {
     }
   }, []);
 
-  const loadData = useCallback(async () => {
-    if (activeTab === 'approval') {
-      await loadPendingApprovals();
-    } else {
-      await loadFunds();
+  const loadCedentes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await cedenteService.list();
+      setCedentes(response);
+    } catch {
+      toast.error('Erro ao carregar cedentes');
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab, loadPendingApprovals, loadFunds]);
+  }, []);
+
+  const loadSacados = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await sacadoService.list();
+      setSacados(response);
+    } catch {
+      toast.error('Erro ao carregar sacados');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    switch (activeTab) {
+      case 'consultores':
+        await loadConsultores();
+        break;
+      case 'fundos':
+        await loadFunds();
+        break;
+      case 'cedentes':
+        await loadCedentes();
+        break;
+      case 'sacados':
+        await loadSacados();
+        break;
+    }
+  }, [activeTab, loadConsultores, loadFunds, loadCedentes, loadSacados]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handleApproval = async (id: number, status: 'approved' | 'rejected', type: 'cedente' | 'sacado') => {
+  const handleApproveConsultor = async (id: string, action: 'approve' | 'reject') => {
     try {
-      if (type === 'cedente') {
-        await cedenteService.updateStatus(id.toString(), status);
-      } else {
-        await sacadoService.updateStatus(id.toString(), status);
-      }
-      toast.success(`${type === 'cedente' ? 'Cedente' : 'Sacado'} ${status === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso!`);
-      loadPendingApprovals();
+      const response = await fetch(`/api/users/${id}/approval`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ status: action === 'approve' ? 'APPROVED' : 'REJECTED' }),
+      });
+
+      if (!response.ok) throw new Error();
+
+      toast.success(`Consultor ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      loadConsultores();
     } catch {
-      toast.error('Erro ao atualizar status');
+      toast.error('Erro ao processar aprovação');
     }
   };
 
-  const handleFundSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const handleApproveFund = async (id: string, action: 'approve' | 'reject') => {
     try {
-      // Create fund in database
-      await fundService.create({
-        name: fundFormData.name,
-        symbol: fundFormData.symbol,
-        maxSupply: parseInt(fundFormData.maxSupply),
-        price: 100 // Default price
+      const response = await fetch(`/api/funds/${id}/approval`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ status: action === 'approve' ? 'APPROVED' : 'REJECTED' }),
       });
-      
-      // Generate admin keys for this fund
-      const keys = await stellarService.generateKeys();
-      
-      // Fund the admin account
-      await stellarService.fundAccount(keys.publicKey);
-      
-      // Deploy fund token contract
-      const tokenContract = await stellarService.deployContract(keys.secretKey, 'fund-token');
-      
-      // Deploy receivable vault contract
-      await stellarService.deployContract(keys.secretKey, 'receivable-vault');
-      
-      // Initialize the fund token
-      await stellarService.initializeFundToken(
-        keys.secretKey,
-        tokenContract.contractId,
-        fundFormData.symbol,
-        100000 // Initial supply
-      );
-      
-      toast.success(`Fundo criado e tokenizado com sucesso! Token: ${tokenContract.contractId}`);
-      setFundFormData({ name: '', description: '', symbol: '', maxSupply: '10000' });
-      setShowFundForm(false);
+
+      if (!response.ok) throw new Error();
+
+      toast.success(`Fundo ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
       loadFunds();
     } catch {
-      toast.error('Erro ao criar fundo');
-    } finally {
-      setLoading(false);
+      toast.error('Erro ao processar aprovação');
     }
   };
 
-  const handleFundFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFundFormData({
-      ...fundFormData,
-      [e.target.name]: e.target.value
-    });
+  const handleApproveCedente = async (id: number, action: 'approve' | 'reject') => {
+    try {
+      await cedenteService.updateStatus(id.toString(), action === 'approve' ? 'approved' : 'rejected');
+      toast.success(`Cedente ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      loadCedentes();
+    } catch {
+      toast.error('Erro ao processar aprovação');
+    }
   };
 
-  const isItemCedente = (item: Cedente | Sacado): item is Cedente => {
-    return 'cnpj' in item;
+  const handleApproveSacado = async (id: number, action: 'approve' | 'reject') => {
+    try {
+      await sacadoService.updateStatus(id.toString(), action === 'approve' ? 'approved' : 'rejected');
+      toast.success(`Sacado ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso!`);
+      loadSacados();
+    } catch {
+      toast.error('Erro ao processar aprovação');
+    }
   };
 
   return (
@@ -189,19 +223,19 @@ const GestorDashboard: React.FC = () => {
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">
             <button
-              onClick={() => setActiveTab('approval')}
+              onClick={() => setActiveTab('consultores')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'approval'
+                activeTab === 'consultores'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Aprovações Pendentes
+              Consultores
             </button>
             <button
-              onClick={() => setActiveTab('funds')}
+              onClick={() => setActiveTab('fundos')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'funds'
+                activeTab === 'fundos'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -209,286 +243,272 @@ const GestorDashboard: React.FC = () => {
               Fundos
             </button>
             <button
-              onClick={() => setActiveTab('receivables')}
+              onClick={() => setActiveTab('cedentes')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'receivables'
+                activeTab === 'cedentes'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Recebíveis
+              Cedentes
+            </button>
+            <button
+              onClick={() => setActiveTab('sacados')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sacados'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Sacados
             </button>
           </nav>
         </div>
 
         {/* Content */}
-        {activeTab === 'approval' ? (
+        {activeTab === 'consultores' ? (
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium mb-4">Aprovações Pendentes</h3>
+              <h3 className="text-lg font-medium mb-4">Consultores</h3>
               {loading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <div className="overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tipo
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nome
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          CNPJ
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Data
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {pendingItems.map((item) => (
-                        <tr key={`${isItemCedente(item) ? 'cedente' : 'sacado'}-${item.id}`}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {isItemCedente(item) ? 'Cedente' : 'Sacado'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.cnpj}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                <div className="space-y-4">
+                  {consultores.map((consultor) => (
+                    <div key={consultor.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{consultor.email}</h4>
+                          <p className="text-sm text-gray-500">
+                            Cadastrado em: {new Date(consultor.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            consultor.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            consultor.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {consultor.status === 'PENDING' ? 'Pendente' :
+                             consultor.status === 'APPROVED' ? 'Aprovado' : 'Rejeitado'}
+                          </span>
+                        </div>
+                        {consultor.status === 'PENDING' && (
+                          <div className="space-x-2">
                             <button
-                              onClick={() => handleApproval(item.id, 'approved', isItemCedente(item) ? 'cedente' : 'sacado')}
-                              className="text-green-600 hover:text-green-900"
+                              onClick={() => handleApproveConsultor(consultor.id, 'approve')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
                             >
                               Aprovar
                             </button>
                             <button
-                              onClick={() => handleApproval(item.id, 'rejected', isItemCedente(item) ? 'cedente' : 'sacado')}
-                              className="text-red-600 hover:text-red-900"
+                              onClick={() => handleApproveConsultor(consultor.id, 'reject')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                             >
                               Rejeitar
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {pendingItems.length === 0 && (
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {consultores.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      Nenhuma aprovação pendente
+                      Nenhum consultor cadastrado
                     </div>
                   )}
                 </div>
               )}
             </div>
           </div>
-        ) : activeTab === 'receivables' ? (
-          <div className="space-y-6">
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium mb-4">Gestão de Recebíveis</h3>
-              <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">Demo: Fluxo de Pagamento</h4>
-                  <p className="text-sm text-blue-700 mb-4">
-                    Simule o recebimento de um pagamento e distribuição automática para os investidores.
-                  </p>
-                  <div className="space-y-3">
-                    <button
-                      onClick={async () => {
-                        toast('📝 Registrando recebível no blockchain...', { icon: '⏳' });
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        toast.success('✅ Recebível registrado com sucesso!');
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      1. Registrar Recebível (R$ 50.000)
-                    </button>
-                    
-                    <button
-                      onClick={async () => {
-                        toast('💰 Marcando recebível como pago...', { icon: '⏳' });
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        toast.success('✅ Pagamento confirmado!');
-                      }}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      2. Marcar como Pago (R$ 50.000)
-                    </button>
-                    
-                    <button
-                      onClick={async () => {
-                        toast('🔄 Distribuindo pagamentos proporcionalmente...', { icon: '⏳' });
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        toast.success('✅ Distribuição concluída!');
-                        toast.success('💎 Investidores receberam tokens proporcionalmente!');
-                      }}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      3. Distribuir para Investidores
-                    </button>
-                  </div>
+        ) : activeTab === 'fundos' ? (
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium mb-4">Todos os Fundos</h3>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
-                
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Histórico de Recebíveis</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span>Recebível #001 - Empresa XYZ</span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                        Pago: R$ 25.000
-                      </span>
+              ) : (
+                <div className="space-y-4">
+                  {funds.map((fund) => (
+                    <div key={fund.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{fund.name}</h4>
+                          <p className="text-sm text-gray-600">{fund.description}</p>
+                          <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-500">Símbolo:</span> {fund.symbol}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Meta:</span> R$ {fund.targetAmount?.toLocaleString('pt-BR') || 'N/A'}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Oferta Máxima:</span> {fund.maxSupply.toLocaleString('pt-BR')} cotas
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Preço:</span> R$ {fund.price.toLocaleString('pt-BR')}
+                            </div>
+                          </div>
+                          {fund.consultor && (
+                            <p className="text-sm text-gray-500 mt-2">
+                              Criado por: {fund.consultor.email}
+                            </p>
+                          )}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-2 ${
+                            fund.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            fund.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            fund.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {fund.status === 'PENDING' ? 'Pendente' :
+                             fund.status === 'APPROVED' ? 'Aprovado' :
+                             fund.status === 'REJECTED' ? 'Rejeitado' : fund.status}
+                          </span>
+                        </div>
+                        {fund.status === 'PENDING' && (
+                          <div className="ml-4 space-x-2">
+                            <button
+                              onClick={() => handleApproveFund(fund.id, 'approve')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Aprovar
+                            </button>
+                            <button
+                              onClick={() => handleApproveFund(fund.id, 'reject')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Rejeitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span>Recebível #002 - Empresa ABC</span>
-                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-                        Pendente: R$ 15.000
-                      </span>
+                  ))}
+                  {funds.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Nenhum fundo cadastrado
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span>Recebível #003 - Empresa DEF</span>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                        Registrado: R$ 30.000
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === 'cedentes' ? (
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium mb-4">Cedentes</h3>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {cedentes.map((cedente) => (
+                    <div key={cedente.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{cedente.name}</h4>
+                          <p className="text-sm text-gray-600">CNPJ: {cedente.document || cedente.cnpj}</p>
+                          {cedente.consultor && (
+                            <p className="text-sm text-gray-500">
+                              Cadastrado por: {cedente.consultor.email}
+                            </p>
+                          )}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-2 ${
+                            cedente.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            cedente.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {cedente.status === 'PENDING' ? 'Pendente' :
+                             cedente.status === 'APPROVED' ? 'Aprovado' : 'Rejeitado'}
+                          </span>
+                        </div>
+                        {cedente.status === 'PENDING' && (
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => handleApproveCedente(cedente.id, 'approve')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Aprovar
+                            </button>
+                            <button
+                              onClick={() => handleApproveCedente(cedente.id, 'reject')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Rejeitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {cedentes.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Nenhum cedente cadastrado
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : (
-          <div>
-            {/* Create Fund Button */}
-            <div className="mb-6">
-              <button
-                onClick={() => setShowFundForm(!showFundForm)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium"
-              >
-                {showFundForm ? 'Cancelar' : 'Criar Novo Fundo'}
-              </button>
-            </div>
-
-            {/* Fund Form */}
-            {showFundForm && (
-              <div className="bg-white shadow rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-medium mb-4">Criar Novo Fundo</h3>
-                <form onSubmit={handleFundSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Nome do Fundo</label>
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      value={fundFormData.name}
-                      onChange={handleFundFormChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Símbolo do Token</label>
-                    <input
-                      type="text"
-                      name="symbol"
-                      required
-                      value={fundFormData.symbol}
-                      onChange={handleFundFormChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Quantidade Máxima de Tokens</label>
-                    <input
-                      type="number"
-                      name="maxSupply"
-                      required
-                      value={fundFormData.maxSupply}
-                      onChange={handleFundFormChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Descrição</label>
-                    <textarea
-                      name="description"
-                      required
-                      rows={3}
-                      value={fundFormData.description}
-                      onChange={handleFundFormChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    >
-                      {loading ? 'Criando...' : 'Criar Fundo'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Funds List */}
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium mb-4">Fundos Criados</h3>
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {funds.map((fund) => (
-                      <div key={fund.id} className="border border-gray-200 rounded-lg p-4">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">{fund.name}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{fund.description || 'Sem descrição'}</p>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Símbolo: {fund.symbol}</span>
-                          <span className="text-blue-600 font-medium">
-                            R$ {fund.targetAmount ? fund.targetAmount.toLocaleString('pt-BR') : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="mt-2">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            fund.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : fund.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium mb-4">Sacados</h3>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sacados.map((sacado) => (
+                    <div key={sacado.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{sacado.name}</h4>
+                          <p className="text-sm text-gray-600">CNPJ: {sacado.document || sacado.cnpj}</p>
+                          {sacado.consultor && (
+                            <p className="text-sm text-gray-500">
+                              Cadastrado por: {sacado.consultor.email}
+                            </p>
+                          )}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-2 ${
+                            sacado.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            sacado.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
-                            {fund.status === 'active' ? 'Ativo' : 
-                             fund.status === 'pending' ? 'Pendente' : 'Inativo'}
+                            {sacado.status === 'PENDING' ? 'Pendente' :
+                             sacado.status === 'APPROVED' ? 'Aprovado' : 'Rejeitado'}
                           </span>
                         </div>
+                        {sacado.status === 'PENDING' && (
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => handleApproveSacado(sacado.id, 'approve')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Aprovar
+                            </button>
+                            <button
+                              onClick={() => handleApproveSacado(sacado.id, 'reject')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Rejeitar
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-                {funds.length === 0 && !loading && (
-                  <div className="text-center py-8 text-gray-500">
-                    Nenhum fundo criado
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                  {sacados.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      Nenhum sacado cadastrado
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

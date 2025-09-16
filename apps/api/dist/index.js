@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { PrismaClient } from '@prisma/client';
 import { authRoutes } from './routes/auth.js';
+import { userRoutes } from './routes/users.js';
 import { cedenteRoutes } from './routes/cedente.js';
 import { sacadoRoutes } from './routes/sacado.js';
 import { fundRoutes } from './routes/fund.js';
@@ -21,6 +22,7 @@ await fastify.register(cors, {
 fastify.decorate('prisma', prisma);
 // Register routes
 await fastify.register(authRoutes, { prefix: '/api/auth' });
+await fastify.register(userRoutes, { prefix: '/api/users' });
 await fastify.register(cedenteRoutes, { prefix: '/api/cedentes' });
 await fastify.register(sacadoRoutes, { prefix: '/api/sacados' });
 await fastify.register(fundRoutes, { prefix: '/api/funds' });

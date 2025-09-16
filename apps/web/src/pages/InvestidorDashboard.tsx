@@ -38,7 +38,6 @@ const InvestidorDashboard: React.FC = () => {
   const [stellarKeys, setStellarKeys] = useState<{publicKey: string, secretKey: string} | null>(null);
   const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
   const [investmentAmount, setInvestmentAmount] = useState('');
-  const [tokenBalances, setTokenBalances] = useState<{[symbol: string]: number}>({});
 
   const loadFunds = useCallback(async () => {
     setLoading(true);
@@ -229,20 +228,14 @@ const InvestidorDashboard: React.FC = () => {
               <div>
                 <h3 className="text-lg font-medium text-green-900">Carteira Stellar Configurada</h3>
                 <p className="text-sm text-green-700 font-mono">{stellarKeys.publicKey}</p>
+                {/* TODO: Implementar carregamento de saldos de tokens
                 <div className="mt-2">
                   <h4 className="text-sm font-medium text-green-800">Saldos de Tokens:</h4>
                   <div className="flex space-x-4 mt-1">
-                    {Object.entries(tokenBalances).length > 0 ? (
-                      Object.entries(tokenBalances).map(([symbol, balance]) => (
-                        <span key={symbol} className="text-sm text-green-700">
-                          {symbol}: {balance}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-green-600">Nenhum token encontrado</span>
-                    )}
+                    <span className="text-sm text-green-600">Funcionalidade em desenvolvimento</span>
                   </div>
                 </div>
+                */}
               </div>
               <button
                 onClick={fundAccount}

@@ -11,6 +11,10 @@ const createFundSchema = z.object({
   price: z.number().positive().optional()
 });
 
+const approvalSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED'])
+});
+
 function verifyToken(token: string) {
   try {
     return jwt.verify(token, JWT_SECRET) as any;
@@ -29,8 +33,19 @@ export async function fundRoutes(fastify: FastifyInstance) {
       }
 
       const payload = verifyToken(token);
-      if (payload.role !== 'GESTOR') {
-        return reply.status(403).send({ error: 'Only gestors can create funds' });
+      if (payload.role !== 'GESTOR' && payload.role !== 'CONSULTOR') {
+        return reply.status(403).send({ error: 'Only gestors and consultors can create funds' });
+      }
+
+      // If it's a consultor, check if they are approved
+      if (payload.role === 'CONSULTOR') {
+        const consultor = await fastify.prisma.user.findUnique({
+          where: { id: payload.userId }
+        });
+        
+        if (!consultor || consultor.status !== 'APPROVED') {
+          return reply.status(403).send({ error: 'Consultor must be approved to create funds' });
+        }
       }
 
       const body = createFundSchema.parse(request.body);
@@ -44,8 +59,17 @@ export async function fundRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Symbol already exists' });
       }
 
+      // Prepare fund data
+      const fundData = {
+        ...body,
+        // Funds created by consultors start as PENDING, by gestors as APPROVED
+        status: payload.role === 'CONSULTOR' ? 'PENDING' : 'APPROVED',
+        // Associate consultor if applicable
+        ...(payload.role === 'CONSULTOR' && { consultorId: payload.userId })
+      };
+
       const fund = await fastify.prisma.fund.create({
-        data: body
+        data: fundData
       });
 
       return { fund };
@@ -63,6 +87,11 @@ export async function fundRoutes(fastify: FastifyInstance) {
     try {
       const funds = await fastify.prisma.fund.findMany({
         include: {
+          consultor: {
+            select: {
+              email: true
+            }
+          },
           receivables: {
             select: {
               id: true,
@@ -205,6 +234,53 @@ export async function fundRoutes(fastify: FastifyInstance) {
       const updatedFund = await fastify.prisma.fund.update({
         where: { id },
         data: { totalIssued: fund.totalIssued + amount }
+      });
+
+      return { fund: updatedFund };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ error: 'Invalid input', details: error.errors });
+      }
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Approve/reject fund (Gestor only)
+  fastify.patch('/:id/approval', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return reply.status(401).send({ error: 'No token provided' });
+      }
+
+      const user = verifyToken(token);
+      const params = request.params as { id: string };
+      
+      if (user.role !== 'GESTOR') {
+        return reply.status(403).send({ error: 'Access denied' });
+      }
+
+      const body = approvalSchema.parse(request.body);
+      
+      const fund = await fastify.prisma.fund.findUnique({
+        where: { id: params.id }
+      });
+
+      if (!fund) {
+        return reply.status(404).send({ error: 'Fund not found' });
+      }
+
+      const updatedFund = await fastify.prisma.fund.update({
+        where: { id: params.id },
+        data: { status: body.status },
+        include: {
+          consultor: {
+            select: {
+              email: true
+            }
+          }
+        }
       });
 
       return { fund: updatedFund };
