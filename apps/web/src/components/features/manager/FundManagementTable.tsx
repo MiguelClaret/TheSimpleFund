@@ -43,26 +43,26 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return <CheckIcon className="w-4 h-4 text-green-400" />;
+        return <CheckIcon className="w-4 h-4 text-green-300" />;
       case 'rejected':
-        return <XMarkIcon className="w-4 h-4 text-red-400" />;
+        return <XMarkIcon className="w-4 h-4 text-red-300" />;
       case 'inactive':
-        return <StopIcon className="w-4 h-4 text-gray-400" />;
+        return <StopIcon className="w-4 h-4 text-gray-300" />;
       default:
-        return <ClockIcon className="w-4 h-4 text-yellow-400" />;
+        return <ClockIcon className="w-4 h-4 text-yellow-300" />;
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return 'Aprovado';
+        return 'Approved';
       case 'rejected':
-        return 'Rejeitado';
+        return 'Rejected';
       case 'pending':
-        return 'Pendente';
+        return 'Pending';
       case 'inactive':
-        return 'Inativo';
+        return 'Inactive';
       default:
         return status;
     }
@@ -71,38 +71,38 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return 'bg-green-500/20 text-green-400 border-green-400/30';
+        return 'bg-green-500/30 text-green-300 border-green-400/40';
       case 'rejected':
-        return 'bg-red-500/20 text-red-400 border-red-400/30';
+        return 'bg-red-500/30 text-red-300 border-red-400/40';
       case 'inactive':
-        return 'bg-gray-500/20 text-gray-400 border-gray-400/30';
+        return 'bg-gray-500/30 text-gray-300 border-gray-400/40';
       default:
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-400/30';
+        return 'bg-yellow-500/30 text-yellow-300 border-yellow-400/40';
     }
   };
 
   if (loading) {
     return (
-      <GlassCard>
+      <GlassCard className="bg-white/10 backdrop-blur-xl border-white/20">
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-300"></div>
         </div>
       </GlassCard>
     );
   }
 
   return (
-    <GlassCard>
+    <GlassCard className="bg-white/10 backdrop-blur-xl border-white/20">
       <div className="space-y-6">
-        <h3 className="text-lg font-medium text-white">Gerenciamento de Fundos</h3>
+        <h3 className="text-lg font-medium text-white">Fund Management</h3>
         
         {funds.length === 0 ? (
           <div className="text-center py-12">
-            <div className="mx-auto w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mb-4">
-              <ChartBarIcon className="w-8 h-8 text-gray-400" />
+            <div className="mx-auto w-16 h-16 bg-gray-400/30 rounded-full flex items-center justify-center mb-4">
+              <ChartBarIcon className="w-8 h-8 text-gray-200" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Nenhum fundo encontrado</h3>
-            <p className="text-gray-400">Não há fundos cadastrados no momento.</p>
+            <h3 className="text-lg font-medium text-white mb-2">No funds found</h3>
+            <p className="text-gray-200">No funds registered at the moment.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -111,7 +111,7 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
               const availableShares = fund.maxSupply - fund.totalIssued;
               
               return (
-                <div key={fund.id} className="glass-card p-6 hover:scale-[1.01] transition-transform">
+                <div key={fund.id} className="bg-white/10 border border-white/20 rounded-lg p-6 hover:scale-[1.01] transition-transform backdrop-blur-sm">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -124,27 +124,27 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
                         </div>
                         
                         {fund.description && (
-                          <p className="text-sm text-gray-300 mb-3">{fund.description}</p>
+                          <p className="text-sm text-gray-200 mb-3">{fund.description}</p>
                         )}
                         
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div className="space-y-1">
-                            <div className="text-gray-400">Símbolo</div>
+                            <div className="text-gray-300">Symbol</div>
                             <div className="text-white font-medium">{fund.symbol}</div>
                           </div>
                           <div className="space-y-1">
-                            <div className="text-gray-400">Preço por cota</div>
-                            <div className="text-green-400 font-medium">R$ {fund.price.toLocaleString('pt-BR')}</div>
+                            <div className="text-gray-300">Price per share</div>
+                            <div className="text-green-300 font-medium">$ {fund.price.toLocaleString('en-US')}</div>
                           </div>
                           <div className="space-y-1">
-                            <div className="text-gray-400">Meta</div>
+                            <div className="text-gray-300">Target</div>
                             <div className="text-white font-medium">
-                              R$ {fund.targetAmount?.toLocaleString('pt-BR') || 'N/A'}
+                              $ {fund.targetAmount?.toLocaleString('en-US') || 'N/A'}
                             </div>
                           </div>
                           <div className="space-y-1">
-                            <div className="text-gray-400">Consultor</div>
-                            <div className="text-blue-400 font-medium text-xs">
+                            <div className="text-gray-300">Consultant</div>
+                            <div className="text-blue-300 font-medium text-xs">
                               {fund.consultor?.email || 'N/A'}
                             </div>
                           </div>
@@ -197,8 +197,8 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
                     
                     {/* Action Buttons */}
                     <div className="flex items-center justify-between pt-2">
-                      <div className="text-xs text-gray-400">
-                        Criado em {new Date(fund.createdAt).toLocaleDateString('pt-BR')}
+                      <div className="text-xs text-gray-300">
+                        Created on {new Date(fund.createdAt).toLocaleDateString('en-US')}
                       </div>
                       
                       <div className="flex space-x-2">
@@ -207,18 +207,18 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
                             <Button
                               variant="secondary"
                               onClick={() => onApprove(fund.id, 'approve')}
-                              className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30"
+                              className="bg-green-400/40 border-green-300/40 text-green-200 hover:bg-green-400/50 transition-all duration-200"
                             >
                               <CheckIcon className="w-4 h-4 mr-1" />
-                              Aprovar
+                              Approve
                             </Button>
                             <Button
                               variant="secondary"
                               onClick={() => onApprove(fund.id, 'reject')}
-                              className="bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30"
+                              className="bg-red-400/40 border-red-300/40 text-red-200 hover:bg-red-400/50 transition-all duration-200"
                             >
                               <XMarkIcon className="w-4 h-4 mr-1" />
-                              Rejeitar
+                              Reject
                             </Button>
                           </>
                         )}
@@ -227,10 +227,10 @@ const FundManagementTable: React.FC<FundManagementTableProps> = ({
                           <Button
                             variant="secondary"
                             onClick={() => onDeactivate(fund.id)}
-                            className="bg-gray-500/20 border-gray-400/30 text-gray-300 hover:bg-gray-500/30"
+                            className="bg-gray-400/40 border-gray-300/40 text-gray-200 hover:bg-gray-400/50 transition-all duration-200"
                           >
                             <StopIcon className="w-4 h-4 mr-1" />
-                            Desativar
+                            Deactivate
                           </Button>
                         )}
                       </div>

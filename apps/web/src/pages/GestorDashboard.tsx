@@ -217,22 +217,22 @@ const GestorDashboard: React.FC = () => {
   return (
     <DashboardLayout title="Dashboard do Gestor">
       {/* Welcome Section */}
-      <GlassCard className="border border-purple-400/30 mb-8">
+      <GlassCard className="border-purple-300/40 mb-8 bg-gradient-to-br from-purple-500/30 to-blue-500/30 backdrop-blur-xl">
         <div className="flex items-start space-x-4">
-          <div className="p-3 bg-purple-500/20 rounded-lg">
-            <InformationCircleIcon className="w-6 h-6 text-purple-400" />
+          <div className="p-3 bg-purple-400/30 rounded-lg backdrop-blur-sm">
+            <InformationCircleIcon className="w-6 h-6 text-purple-200" />
           </div>
           <div>
-            <h3 className="text-lg font-medium text-white mb-2">Área do Gestor</h3>
-            <div className="text-sm text-gray-300 space-y-2">
-              <p>Como gestor, você tem controle total sobre a plataforma:</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-400">
-                <li><strong className="text-white">Usuários:</strong> Aprovar consultores e investidores</li>
-                <li><strong className="text-white">Fundos:</strong> Revisar e aprovar fundos criados</li>
-                <li><strong className="text-white">Entidades:</strong> Gerenciar cedentes e sacados</li>
+            <h3 className="text-lg font-medium text-white mb-2">Management Center</h3>
+            <div className="text-sm text-gray-200 space-y-2">
+              <p>As manager, you have full platform control:</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-200">
+                <li><strong className="text-white">Users:</strong> Approve consultants and investors</li>
+                <li><strong className="text-white">Funds:</strong> Review and approve created funds</li>
+                <li><strong className="text-white">Entities:</strong> Manage assignors and debtors</li>
               </ul>
-              <p className="text-xs text-purple-400 pt-2">
-                🔒 Todas as operações são auditadas e registradas no blockchain
+              <p className="text-xs text-purple-200 pt-2">
+                🔒 All operations are audited and recorded on blockchain
               </p>
             </div>
           </div>
@@ -240,22 +240,22 @@ const GestorDashboard: React.FC = () => {
       </GlassCard>
 
       {/* Tabs */}
-      <div className="border-b border-white/20 mb-8">
-        <nav className="-mb-px flex space-x-8">
+      <div className="mb-8">
+        <nav className="flex space-x-1 p-1 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
           {[
-            { id: 'consultores', label: 'Consultores' },
-            { id: 'investidores', label: 'Investidores' },
-            { id: 'fundos', label: 'Fundos' },
-            { id: 'cedentes', label: 'Cedentes' },
-            { id: 'sacados', label: 'Sacados' }
+            { id: 'consultores', label: 'Consultants' },
+            { id: 'investidores', label: 'Investors' },
+            { id: 'fundos', label: 'Funds' },
+            { id: 'cedentes', label: 'Assignors' },
+            { id: 'sacados', label: 'Debtors' }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'consultores' | 'investidores' | 'fundos' | 'cedentes' | 'sacados')}
-              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'border-purple-400 text-purple-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  ? 'bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg'
+                  : 'text-gray-200 hover:text-white hover:bg-white/10'
               }`}
             >
               {tab.label}
