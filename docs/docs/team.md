@@ -5,13 +5,14 @@ sidebar_position: 12
 
 # Team Members
 
-&emsp;**Team Balaiê** is composed of five second-year students from **Inteli – Institute of Technology and Leadership** in Brazil.  
-The team combines strong technical skills in blockchain (Soroban/Stellar), web development, and product design, with prior experience in hackathons and academic projects.  
-Below, we introduce the members, their backgrounds, project roles, and public profiles.
+&emsp;**Team Balaiê** is composed of five technology students from **Inteli – Institute of Technology and Leadership** in Brazil.  
+The team combines strong technical skills in blockchain (Soroban/Stellar), web development, marketing, and product design, with prior experience in hackathons and academic projects.  
+Together, they deliver not only technical solutions but also user-centered storytelling and impact-driven communication.  
 
+---
 
-
-## Mariana de Paula Barbosa Souza
+## Mariana de Paula Barbosa Souza  
+**Lead / PM + Blockchain Developer**
 
 <p style={{textAlign: 'center'}}> Mariana de Paula </p>
 <div style={{margin: 15}}>
@@ -33,9 +34,10 @@ Below, we introduce the members, their backgrounds, project roles, and public pr
 - **LinkedIn**: [marianadepaulabarbosa](https://www.linkedin.com/in/marianadepaulabarbosa/)  
 - **GitHub**: [github.com/marianabarbosa](https://github.com/MariMari0945)  
 
+---
 
-
-## Miguel da Silva Claret
+## Miguel da Silva Claret  
+**Frontend Developer**
 
 <p style={{textAlign: 'center'}}> Miguel Claret </p>
 <div style={{margin: 15}}>
@@ -57,9 +59,10 @@ Below, we introduce the members, their backgrounds, project roles, and public pr
 - **LinkedIn**: [miguelclaret](https://www.linkedin.com/in/miguelclaret/)  
 - **GitHub**: [github.com/miguelclaret](https://github.com/miguelclaret)  
 
+---
 
-
-## Cecília Beatriz Melo Galvão
+## Cecília Beatriz Melo Galvão  
+**Blockchain Developer**
 
 <p style={{textAlign: 'center'}}> Cecília Galvão </p>
 <div style={{margin: 15}}>
@@ -81,9 +84,10 @@ Below, we introduce the members, their backgrounds, project roles, and public pr
 - **LinkedIn**: [cecília-galvão](https://www.linkedin.com/in/cec%C3%ADlia-galv%C3%A3o/)  
 - **GitHub**: [github.com/cecilia-galvao](https://github.com/ceciliagalvaoo)  
 
+---
 
-
-## Heitor Candido
+## Heitor Candido  
+**Backend Developer**
 
 <p style={{textAlign: 'center'}}> Heitor Candido </p>
 <div style={{margin: 15}}>
@@ -101,13 +105,14 @@ Below, we introduce the members, their backgrounds, project roles, and public pr
   - Integration with Stellar Horizon and Soroban for transaction orchestration  
 - **Project roles**:
   - Backend Developer  
-  - Responsible for authentication, issuance, and distribution endpoints, plus blockchain integratio
-- **LinkedIn**: [heitorcandido](https://github.com/HeitorCand)  
-- **GitHub**: [github.com/heitorcandido](https://www.linkedin.com/in/heitorfariacandido/)  
+  - Responsible for authentication, issuance, and distribution endpoints, plus blockchain integration
+- **LinkedIn**: [heitorcandido](https://www.linkedin.com/in/heitorfariacandido/)  
+- **GitHub**: [github.com/heitorcandido](https://github.com/HeitorCand)  
 
+---
 
-
-## Pablo de Azevedo
+## Pablo de Azevedo  
+**Frontend Developer + Videomaker**
 
 <p style={{textAlign: 'center'}}> Pablo Azevedo </p>
 <div style={{margin: 15}}>
@@ -129,9 +134,9 @@ Below, we introduce the members, their backgrounds, project roles, and public pr
 - **LinkedIn**: [pabloazevedo](https://www.linkedin.com/in/pabloazevedo/)  
 - **GitHub**: [github.com/pablo-azevedo](https://github.com/zzaved)  
 
-
+---
 
 ## Conclusion
 
-&emsp;**Team Balaiê** represents a strong combination of technical expertise and strategic vision for real-world impact.  
-With skills across blockchain, frontend, backend, and storytelling, the team is prepared to deliver a functional MVP at the **Meridian Hackathon 2025**, showcasing Stellar’s potential to transform receivables funds into **transparent, tokenized, and liquid digital assets**.
+&emsp;**Team Balaiê** represents a strong combination of technical expertise, marketing skills, and strategic vision for real-world impact.  
+With skills across blockchain, frontend, backend, design, and storytelling, the team is prepared to deliver a functional MVP at the **Meridian Hackathon 2025**, showcasing Stellar’s potential to transform receivables funds into **transparent, tokenized, and liquid digital assets**.
