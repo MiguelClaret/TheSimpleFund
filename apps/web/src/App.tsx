@@ -6,8 +6,10 @@ import { useAuth } from './contexts/useAuth';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import HomePage from './pages/Home';
 import './App.css';
 
+// Rota protegida: só entra se estiver autenticado
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -30,6 +32,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
+
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -90,8 +93,17 @@ function App() {
               },
             }}
           />
+
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Login com verificação */}
+            <Route 
+              path="/" 
+              element={
+                  <HomePage />
+              } 
+
+            />
+            {/* Login com verificação */}
             <Route 
               path="/login" 
               element={
@@ -100,6 +112,8 @@ function App() {
                 </PublicRoute>
               } 
             />
+
+            {/* Registro com verificação */}
             <Route 
               path="/register" 
               element={
@@ -108,6 +122,8 @@ function App() {
                 </PublicRoute>
               } 
             />
+
+            {/* Dashboard protegido */}
             <Route 
               path="/dashboard" 
               element={

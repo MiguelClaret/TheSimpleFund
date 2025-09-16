@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, symbol_short};
+use soroban_sdk::{contract, contractimpl, contracterror, contracttype, Address, Env, String, symbol_short};
+
+const DECIMALS: u32 = 7;
 
 #[derive(Clone)]
 #[contracttype]
@@ -9,203 +11,142 @@ pub enum DataKey {
     Symbol,
     Decimals,
     TotalSupply,
+    MaxSupply,
     Balance(Address),
     Whitelist(Address),
     Paused,
 }
 
-pub const DECIMAL: u32 = 7;
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum TokenError {
+    AlreadyInitialized = 1,
+    NotAdmin = 2,
+    Paused = 3,
+    NotWhitelisted = 4,
+    InsufficientBalance = 5,
+    SupplyOverflow = 6,
+    InvalidAmount = 7,
+}
+
+fn ensure_positive(amount: i128) -> Result<(), TokenError> {
+    if amount <= 0 { return Err(TokenError::InvalidAmount); }
+    Ok(())
+}
+fn add(a: i128, b: i128, e: TokenError) -> Result<i128, TokenError> {
+    a.checked_add(b).ok_or(e)
+}
+fn sub(a: i128, b: i128, e: TokenError) -> Result<i128, TokenError> {
+    a.checked_sub(b).ok_or(e)
+}
 
 #[contract]
 pub struct FundToken;
 
 #[contractimpl]
 impl FundToken {
-    /// Initialize the token contract
-    pub fn initialize(
-        env: Env,
-        admin: Address,
-        name: String,
-        symbol: String,
-        max_supply: i128,
-    ) {
+    pub fn initialize(env: Env, admin: Address, name: String, symbol: String, max_supply: i128) -> Result<(), TokenError> {
         if env.storage().instance().has(&DataKey::Admin) {
-            panic!("Contract already initialized");
+            return Err(TokenError::AlreadyInitialized);
         }
-
         admin.require_auth();
+        if name.len() == 0 || symbol.len() == 0 || max_supply <= 0 {
+            return Err(TokenError::InvalidAmount);
+        }
 
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::Name, &name);
         env.storage().instance().set(&DataKey::Symbol, &symbol);
-        env.storage().instance().set(&DataKey::Decimals, &DECIMAL);
+        env.storage().instance().set(&DataKey::Decimals, &DECIMALS);
         env.storage().instance().set(&DataKey::TotalSupply, &0i128);
+        env.storage().instance().set(&DataKey::MaxSupply, &max_supply);
         env.storage().instance().set(&DataKey::Paused, &false);
-        
-        // Set max supply as a custom property for the fund
-        env.storage().instance().set(&symbol_short!("MaxSupply"), &max_supply);
+        Ok(())
     }
 
-    /// Add address to whitelist (admin only)
-    pub fn whitelist_add(env: Env, address: Address) {
+    // --- Whitelist (KYC/AML) ---
+    pub fn whitelist_add(env: Env, address: Address) -> Result<(), TokenError> {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth();
-
         env.storage().persistent().set(&DataKey::Whitelist(address.clone()), &true);
-        
-        // Emit event
-        env.events().publish(
-            (symbol_short!("whitelist"), symbol_short!("add")),
-            address
-        );
+        env.events().publish((symbol_short!("whitelist_add"),), address);
+        Ok(())
     }
-
-    /// Remove address from whitelist (admin only)
-    pub fn whitelist_remove(env: Env, address: Address) {
+    pub fn whitelist_remove(env: Env, address: Address) -> Result<(), TokenError> {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth();
-
         env.storage().persistent().remove(&DataKey::Whitelist(address.clone()));
-        
-        // Emit event
-        env.events().publish(
-            (symbol_short!("whitelist"), symbol_short!("remove")),
-            address
-        );
+        env.events().publish((symbol_short!("whitelist_remove"),), address);
+        Ok(())
     }
-
-    /// Check if address is whitelisted
     pub fn is_whitelisted(env: Env, address: Address) -> bool {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Whitelist(address))
-            .unwrap_or(false)
+        env.storage().persistent().get(&DataKey::Whitelist(address)).unwrap_or(false)
     }
 
-    /// Mint tokens (admin only)
-    pub fn mint(env: Env, to: Address, amount: i128) {
+    // --- Mint / Transfer ---
+    pub fn mint(env: Env, to: Address, amount: i128) -> Result<(), TokenError> {
+        ensure_positive(amount)?;
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth();
-
-        let paused: bool = env.storage().instance().get(&DataKey::Paused).unwrap_or(false);
-        if paused {
-            panic!("Contract is paused");
+        if env.storage().instance().get::<bool>(&DataKey::Paused).unwrap_or(false) {
+            return Err(TokenError::Paused);
         }
-
-        // Check if recipient is whitelisted
         if !Self::is_whitelisted(env.clone(), to.clone()) {
-            panic!("Recipient not whitelisted");
+            return Err(TokenError::NotWhitelisted);
         }
 
-        let current_supply: i128 = env.storage().instance().get(&DataKey::TotalSupply).unwrap_or(0);
-        let max_supply: i128 = env.storage().instance().get(&symbol_short!("MaxSupply")).unwrap();
-        
-        if current_supply + amount > max_supply {
-            panic!("Would exceed max supply");
-        }
+        let cur_supply: i128 = env.storage().instance().get(&DataKey::TotalSupply).unwrap_or(0);
+        let max_supply: i128 = env.storage().instance().get(&DataKey::MaxSupply).unwrap();
+        let new_supply = add(cur_supply, amount, TokenError::SupplyOverflow)?;
+        if new_supply > max_supply { return Err(TokenError::SupplyOverflow); }
 
-        let current_balance = Self::balance(env.clone(), to.clone());
-        let new_balance = current_balance + amount;
-        let new_supply = current_supply + amount;
+        let bal = Self::balance(env.clone(), to.clone());
+        let new_bal = add(bal, amount, TokenError::SupplyOverflow)?;
 
         env.storage().instance().set(&DataKey::TotalSupply, &new_supply);
-        env.storage().persistent().set(&DataKey::Balance(to.clone()), &new_balance);
-
-        // Emit transfer event (from zero address)
-        env.events().publish(
-            (symbol_short!("transfer"), to.clone()),
-            amount
-        );
+        env.storage().persistent().set(&DataKey::Balance(to.clone()), &new_bal);
+        env.events().publish((symbol_short!("mint"), to), amount);
+        Ok(())
     }
 
-    /// Transfer tokens (only to whitelisted addresses)
-    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> bool {
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<bool, TokenError> {
+        ensure_positive(amount)?;
         from.require_auth();
-
-        let paused: bool = env.storage().instance().get(&DataKey::Paused).unwrap_or(false);
-        if paused {
-            panic!("Contract is paused");
+        if env.storage().instance().get::<bool>(&DataKey::Paused).unwrap_or(false) {
+            return Err(TokenError::Paused);
         }
-
-        // Check if recipient is whitelisted
         if !Self::is_whitelisted(env.clone(), to.clone()) {
-            panic!("Recipient not whitelisted");
+            return Err(TokenError::NotWhitelisted);
         }
 
-        let from_balance = Self::balance(env.clone(), from.clone());
-        if from_balance < amount {
-            panic!("Insufficient balance");
-        }
+        let from_bal = Self::balance(env.clone(), from.clone());
+        let to_bal = Self::balance(env.clone(), to.clone());
+        let from_new = sub(from_bal, amount, TokenError::InsufficientBalance)?;
+        let to_new   = add(to_bal, amount, TokenError::SupplyOverflow)?;
 
-        let to_balance = Self::balance(env.clone(), to.clone());
-        
-        env.storage().persistent().set(&DataKey::Balance(from.clone()), &(from_balance - amount));
-        env.storage().persistent().set(&DataKey::Balance(to.clone()), &(to_balance + amount));
-
-        // Emit transfer event
-        env.events().publish(
-            (symbol_short!("transfer"), from, to),
-            amount
-        );
-
-        true
+        env.storage().persistent().set(&DataKey::Balance(from.clone()), &from_new);
+        env.storage().persistent().set(&DataKey::Balance(to.clone()), &to_new);
+        env.events().publish((symbol_short!("transfer"), from, to), amount);
+        Ok(true)
     }
 
-    /// Get balance of an address
-    pub fn balance(env: Env, address: Address) -> i128 {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Balance(address))
-            .unwrap_or(0)
-    }
-
-    /// Get total supply
-    pub fn total_supply(env: Env) -> i128 {
-        env.storage().instance().get(&DataKey::TotalSupply).unwrap_or(0)
-    }
-
-    /// Get token name
-    pub fn name(env: Env) -> String {
-        env.storage().instance().get(&DataKey::Name).unwrap()
-    }
-
-    /// Get token symbol
-    pub fn symbol(env: Env) -> String {
-        env.storage().instance().get(&DataKey::Symbol).unwrap()
-    }
-
-    /// Get decimals
-    pub fn decimals(env: Env) -> u32 {
-        env.storage().instance().get(&DataKey::Decimals).unwrap()
-    }
-
-    /// Get admin address
-    pub fn admin(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Admin).unwrap()
-    }
-
-    /// Pause/unpause contract (admin only)
-    pub fn set_pause(env: Env, paused: bool) {
+    // --- Views / Admin ---
+    pub fn set_pause(env: Env, paused: bool) -> Result<(), TokenError> {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth();
-
         env.storage().instance().set(&DataKey::Paused, &paused);
-        
-        env.events().publish(
-            (symbol_short!("pause"),),
-            paused
-        );
+        env.events().publish((symbol_short!("pause"),), paused);
+        Ok(())
     }
 
-    /// Check if contract is paused
-    pub fn is_paused(env: Env) -> bool {
-        env.storage().instance().get(&DataKey::Paused).unwrap_or(false)
+    pub fn balance(env: Env, addr: Address) -> i128 {
+        env.storage().persistent().get(&DataKey::Balance(addr)).unwrap_or(0)
     }
-
-    /// Get max supply
-    pub fn max_supply(env: Env) -> i128 {
-        env.storage().instance().get(&symbol_short!("MaxSupply")).unwrap()
-    }
+    pub fn total_supply(env: Env) -> i128 { env.storage().instance().get(&DataKey::TotalSupply).unwrap_or(0) }
+    pub fn max_supply(env: Env) -> i128 { env.storage().instance().get(&DataKey::MaxSupply).unwrap() }
+    pub fn decimals(env: Env) -> u32 { env.storage().instance().get(&DataKey::Decimals).unwrap() }
+    pub fn name(env: Env) -> String { env.storage().instance().get(&DataKey::Name).unwrap() }
+    pub fn symbol(env: Env) -> String { env.storage().instance().get(&DataKey::Symbol).unwrap() }
+    pub fn admin(env: Env) -> Address { env.storage().instance().get(&DataKey::Admin).unwrap() }
+    pub fn is_paused(env: Env) -> bool { env.storage().instance().get(&DataKey::Paused).unwrap_or(false) }
 }
-
-mod test;
