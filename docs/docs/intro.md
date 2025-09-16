@@ -4,8 +4,8 @@ sidebar_position: 1
 slug: /
 ---
 # Project Overview — The Simple Fund
-
-####  Video: Insert here a placeholder for the **demo or pitch video**.
+<iframe width="700" height="340" src="https://www.youtube.com/embed/khbtYsOoS_E?si=osDUtth3-N_AllEe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen ></iframe>
+The Simple Fund Project Presentation Video.
 #### **Pitch PDF:** [Click here to view the Pitch PDF](link-to-your-pitch-pdf)
 
 ## Introduction
