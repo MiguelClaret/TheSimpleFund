@@ -124,7 +124,7 @@ const HomePage: React.FC = () => {
           <Button variant="primary" size="lg">Explore Platform</Button>
         </a>
         <a
-          href="#how-it-works"
+          href="https://drive.google.com/file/d/1f96kb6KkLN-z9O3kdbUULvy0VoJmqPLw/view?usp=sharing"
           style={{
             textDecoration: 'none',
             display: 'flex',
