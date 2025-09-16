@@ -4,3 +4,5 @@ sidebar_position: 2
 ---
 
 # Smart Contracts Details
+
+Falar sobre comom funciona cada contrato
